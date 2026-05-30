@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 3 — Unidad 2: La CPU | Arquitectura de Computadoras</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════
+     RESET & BASE
+  ═══════════════════════════════════════════════ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:      #0a0a0a;
+    --white:      #ffffff;
+    --purple:     #5C3060;
+    --purple-mid: #7A4A7E;
+    --purple-lt:  #D8C8DC;
+    --purple-pale:#F3EEF5;
+    --gray-100:   #f5f5f5;
+    --gray-200:   #e8e8e8;
+    --gray-400:   #aaaaaa;
+    --gray-600:   #666666;
+    --gray-800:   #333333;
+    --green:      #1a5c2a;
+    --green-lt:   #e6f4ea;
+    --red:        #8b1a1a;
+    --red-lt:     #fdecea;
+    --amber:      #7a4800;
+    --amber-lt:   #fff3e0;
+    --font-mono:  'IBM Plex Mono', monospace;
+    --font-sans:  'IBM Plex Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--white);
+    color: var(--black);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.65;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  /* ═══════════════════════════════════════════════
+     HEADER
+  ═══════════════════════════════════════════════ */
+  .site-header {
+    border-bottom: 3px solid var(--purple);
+    padding: 2rem 0 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .header-meta {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+  }
+  .header-meta span { color: var(--purple); font-weight: 700; }
+  h1.main-title {
+    font-family: var(--font-mono);
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  h1.main-title em {
+    font-style: normal;
+    color: var(--purple);
+  }
+  .badge-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border: 1.5px solid var(--purple);
+    color: var(--purple);
+    background: transparent;
+  }
+  .badge.filled {
+    background: var(--purple);
+    color: var(--white);
+    border-color: var(--purple);
+  }
+  .progress-bar {
+    margin-top: 1.2rem;
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--gray-600);
+  }
+  .progress-bar span { margin-right: 0.4rem; }
+  .prog-unit {
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--gray-200);
+    color: var(--gray-400);
+    font-size: 0.68rem;
+    font-family: var(--font-mono);
+  }
+  .prog-unit.done { background: var(--purple-lt); color: var(--purple); border-color: var(--purple-lt); }
+  .prog-unit.active { background: var(--purple); color: var(--white); border-color: var(--purple); }
+
+  /* ═══════════════════════════════════════════════
+     ÍNDICE (TOC)
+  ═══════════════════════════════════════════════ */
+  .toc {
+    border: 1.5px solid var(--gray-200);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 3rem;
+    background: var(--gray-100);
+  }
+  .toc-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 0.4rem;
+  }
+  .toc ol {
+    list-style: decimal;
+    padding-left: 1.2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2rem 2rem;
+  }
+  @media(max-width:600px){ .toc ol { grid-template-columns: 1fr; } }
+  .toc a {
+    color: var(--gray-800);
+    text-decoration: none;
+    font-size: 0.88rem;
+    line-height: 1.8;
+  }
+  .toc a:hover { color: var(--purple); text-decoration: underline; }
+  .toc .toc-sub { font-size: 0.78rem; color: var(--gray-600); margin-left: 0.5rem; }
+
+  /* ═══════════════════════════════════════════════
+     SECCIONES
+  ═══════════════════════════════════════════════ */
+  section { margin-bottom: 3.5rem; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 0.3rem;
+  }
+
+  h2 {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--black);
+    border-bottom: 2.5px solid var(--purple);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.2rem;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--purple);
+    margin: 1.6rem 0 0.6rem;
+    font-family: var(--font-sans);
+  }
+
+  h4 {
+    font-size: 0.93rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 1.2rem 0 0.35rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  p { margin-bottom: 0.85rem; color: var(--gray-800); font-size: 0.95rem; }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol { padding-left: 1.4rem; margin-bottom: 0.85rem; }
+  li { font-size: 0.93rem; color: var(--gray-800); margin-bottom: 0.3rem; line-height: 1.6; }
+  li strong { color: var(--black); }
+
+  /* ═══════════════════════════════════════════════
+     CALLOUTS
+  ═══════════════════════════════════════════════ */
+  .callout {
+    border-left: 4px solid var(--purple);
+    background: var(--purple-pale);
+    padding: 0.9rem 1.1rem;
+    margin: 1.2rem 0;
+    font-size: 0.92rem;
+  }
+  .callout.green  { border-color: var(--green);  background: var(--green-lt);  }
+  .callout.red    { border-color: var(--red);    background: var(--red-lt);    }
+  .callout.amber  { border-color: var(--amber);  background: var(--amber-lt);  }
+  .callout strong { display: block; font-size: 0.78rem; font-family: var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.3rem; color: var(--purple); }
+  .callout.green strong  { color: var(--green); }
+  .callout.red strong    { color: var(--red);   }
+  .callout.amber strong  { color: var(--amber); }
+
+  /* ═══════════════════════════════════════════════
+     TABLAS
+  ═══════════════════════════════════════════════ */
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    font-family: var(--font-sans);
+  }
+  thead tr { background: var(--purple); }
+  thead th {
+    color: var(--white);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.6rem 0.9rem;
+    text-align: left;
+    font-weight: 700;
+  }
+  tbody tr:nth-child(odd)  { background: var(--gray-100); }
+  tbody tr:nth-child(even) { background: var(--white);    }
+  tbody tr:hover { background: var(--purple-pale); }
+  td {
+    padding: 0.55rem 0.9rem;
+    border-bottom: 1px solid var(--gray-200);
+    color: var(--gray-800);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  td strong { color: var(--black); }
+  td code {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    background: var(--gray-200);
+    padding: 0.1rem 0.35rem;
+    color: var(--purple);
+  }
+
+  /* ═══════════════════════════════════════════════
+     DIAGRAMAS / BLOQUES VISUALES
+  ═══════════════════════════════════════════════ */
+  .diagram {
+    border: 1.5px solid var(--gray-200);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: var(--gray-100);
+    overflow-x: auto;
+  }
+  .diagram-title {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-600);
+    margin-bottom: 1rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  /* CPU diagram boxes */
+  .cpu-diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+  .cpu-outer {
+    border: 2.5px solid var(--purple);
+    padding: 1rem 1.5rem 1.5rem;
+    width: 100%;
+    max-width: 700px;
+    position: relative;
+  }
+  .cpu-label {
+    position: absolute;
+    top: -0.65rem;
+    left: 1rem;
+    background: var(--gray-100);
+    padding: 0 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cpu-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .cpu-block {
+    border: 1.5px solid var(--purple-mid);
+    padding: 0.6rem 0.5rem;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--purple);
+    background: var(--white);
+    line-height: 1.35;
+  }
+  .cpu-block.highlight {
+    background: var(--purple);
+    color: var(--white);
+    border-color: var(--purple);
+  }
+  .cpu-block small {
+    display: block;
+    font-weight: 400;
+    font-size: 0.68rem;
+    color: var(--gray-600);
+    margin-top: 0.2rem;
+  }
+  .cpu-block.highlight small { color: var(--purple-lt); }
+  .reg-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.3rem;
+    grid-column: span 1;
+  }
+  .reg-box {
+    border: 1px solid var(--purple-lt);
+    padding: 0.25rem;
+    text-align: center;
+    font-size: 0.68rem;
+    background: var(--purple-pale);
+    color: var(--purple);
+  }
+  .cpu-bus {
+    width: 100%;
+    max-width: 700px;
+    height: 2.5rem;
+    background: var(--purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+  }
+  .cpu-mem {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 700px;
+    margin-top: 0.4rem;
+  }
+  .mem-box {
+    border: 1.5px solid var(--gray-400);
+    padding: 0.5rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: center;
+    background: var(--white);
+    color: var(--gray-800);
+  }
+
+  /* Ciclo de instrucción */
+  .cycle-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0;
+  }
+  .cycle-step {
+    border: 1.5px solid var(--purple);
+    padding: 0.9rem 0.7rem;
+    text-align: center;
+    position: relative;
+    background: var(--white);
+  }
+  .cycle-step + .cycle-step { border-left: none; }
+  .cycle-step:first-child { border-left: 1.5px solid var(--purple); }
+  .step-num {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--gray-400);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .step-name {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 0.3rem;
+  }
+  .step-desc { font-size: 0.78rem; color: var(--gray-600); line-height: 1.4; }
+  .step-arrow {
+    position: absolute;
+    right: -0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    color: var(--purple);
+    z-index: 2;
+    background: var(--white);
+    font-weight: 700;
+  }
+
+  /* ═══════════════════════════════════════════════
+     ACTIVIDAD PRÁCTICA
+  ═══════════════════════════════════════════════ */
+  .activity {
+    border: 2px solid var(--purple);
+    margin: 2rem 0;
+  }
+  .activity-header {
+    background: var(--purple);
+    color: var(--white);
+    padding: 0.75rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .activity-header h3 {
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--white);
+    margin: 0;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .activity-time {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.2);
+    padding: 0.2rem 0.5rem;
+    letter-spacing: 0.05em;
+  }
+  .activity-body { padding: 1.4rem 1.5rem; }
+
+  .paso {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+  }
+  .paso:last-child { margin-bottom: 0; }
+  .paso-num {
+    min-width: 2rem;
+    height: 2rem;
+    background: var(--purple);
+    color: var(--white);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+  .paso-content h4 {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--black);
+    font-family: var(--font-sans);
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0 0 0.4rem;
+  }
+  .paso-content p, .paso-content ul, .paso-content ol {
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    color: var(--gray-800);
+  }
+
+  /* ═══════════════════════════════════════════════
+     TERMINAL / COMANDOS
+  ═══════════════════════════════════════════════ */
+  .terminal {
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 1.1rem 1.3rem;
+    margin: 0.8rem 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    border-left: 3px solid var(--purple);
+  }
+  .terminal .prompt { color: #58a6ff; }
+  .terminal .cmd    { color: #79c0ff; }
+  .terminal .out    { color: #8b949e; font-size: 0.78rem; }
+  .terminal .key    { color: #d2a8ff; }
+  .terminal .val    { color: #a5d6ff; }
+  .terminal .ok     { color: #56d364; }
+  .terminal .warn   { color: #e3b341; }
+  .terminal .section-comment { color: #6e7681; font-size: 0.72rem; display: block; margin-top: 0.5rem; }
+  .cmd-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-600);
+    margin-bottom: 0.2rem;
+  }
+
+  /* ═══════════════════════════════════════════════
+     SIMULADOR INTERACTIVO
+  ═══════════════════════════════════════════════ */
+  .simulator {
+    border: 2px solid var(--purple);
+    margin: 2rem 0;
+  }
+  .sim-header {
+    background: var(--purple);
+    color: var(--white);
+    padding: 0.6rem 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .sim-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+  }
+  .sim-dot.active { background: #56d364; }
+  .sim-body { padding: 1.4rem; }
+
+  /* Registros CPU simulados */
+  .reg-sim-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+  .reg-sim {
+    border: 1.5px solid var(--purple-lt);
+    padding: 0.5rem 0.7rem;
+    background: var(--gray-100);
+    font-family: var(--font-mono);
+  }
+  .reg-sim-name { font-size: 0.72rem; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: 0.04em; }
+  .reg-sim-val  { font-size: 0.88rem; font-weight: 600; color: var(--black); margin-top: 0.1rem; }
+  .reg-sim-desc { font-size: 0.68rem; color: var(--gray-600); margin-top: 0.1rem; }
+
+  /* Controles simulador */
+  .sim-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .sim-btn {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.45rem 1rem;
+    border: 1.5px solid var(--purple);
+    background: var(--white);
+    color: var(--purple);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+  .sim-btn:hover   { background: var(--purple); color: var(--white); }
+  .sim-btn:active  { transform: scale(0.97); }
+  .sim-btn.primary { background: var(--purple); color: var(--white); }
+  .sim-btn.primary:hover { background: var(--purple-mid); }
+
+  .sim-program {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    border: 1px solid var(--gray-200);
+    margin-bottom: 1rem;
+  }
+  .prog-line {
+    display: contents;
+  }
+  .prog-line > div {
+    padding: 0.3rem 0.5rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .prog-line .line-num {
+    background: var(--gray-100);
+    color: var(--gray-400);
+    text-align: right;
+    font-size: 0.7rem;
+    border-right: 1px solid var(--gray-200);
+    user-select: none;
+  }
+  .prog-line .line-code { color: var(--gray-800); }
+  .prog-line.active > div { background: var(--purple-pale); }
+  .prog-line.active .line-num { background: var(--purple); color: var(--white); }
+  .prog-line.done > div { background: #f0faf0; }
+
+  .sim-output {
+    border: 1px solid var(--gray-200);
+    padding: 0.7rem 0.9rem;
+    min-height: 3.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    line-height: 1.7;
+  }
+  .sim-output .log-step { color: var(--purple); font-weight: 700; }
+  .sim-output .log-reg  { color: var(--green); }
+  .sim-output .log-mem  { color: #7a4800; }
+  .sim-output .log-done { color: var(--purple-mid); font-weight: 700; }
+
+  /* ═══════════════════════════════════════════════
+     EJERCICIO WINDOWS
+  ═══════════════════════════════════════════════ */
+  .win-exercise { background: var(--gray-100); border: 1.5px solid var(--gray-200); padding: 1.2rem 1.4rem; margin: 1rem 0; }
+  .win-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--purple);
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.8rem;
+  }
+
+  /* ═══════════════════════════════════════════════
+     CHECKLIST DE EVALUACIÓN
+  ═══════════════════════════════════════════════ */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 0.9rem;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist input[type="checkbox"] {
+    margin-top: 0.2rem;
+    width: 1rem; height: 1rem;
+    accent-color: var(--purple);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* ═══════════════════════════════════════════════
+     FOOTER
+  ═══════════════════════════════════════════════ */
+  footer {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--purple);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .footer-iedep {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--gray-600);
+    line-height: 1.7;
+  }
+  .footer-iedep strong { color: var(--purple); }
+  .biblio { font-size: 0.82rem; color: var(--gray-600); line-height: 1.75; max-width: 55ch; }
+  .biblio cite { font-style: normal; display: block; margin-bottom: 0.2rem; }
+
+  /* ═══════════════════════════════════════════════
+     MISC
+  ═══════════════════════════════════════════════ */
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.84em;
+    background: var(--gray-200);
+    padding: 0.1rem 0.35rem;
+    color: var(--purple);
+  }
+  hr { border: none; border-top: 1px solid var(--gray-200); margin: 2.5rem 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.12rem 0.45rem;
+    background: var(--purple-pale);
+    color: var(--purple);
+    border: 1px solid var(--purple-lt);
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .tag.green { background: var(--green-lt); color: var(--green); border-color: #a8d5b5; }
+  .highlight-box {
+    border: 2px solid var(--purple);
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    background: var(--purple-pale);
+  }
+  .highlight-box p { margin: 0; font-size: 0.95rem; }
+  .timeline {
+    border-left: 3px solid var(--purple);
+    padding-left: 1.2rem;
+    margin: 1rem 0;
+  }
+  .tl-item { margin-bottom: 1rem; position: relative; }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -1.45rem;
+    top: 0.35rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    background: var(--purple);
+  }
+  .tl-time { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: 0.05em; }
+  .tl-desc { font-size: 0.9rem; color: var(--gray-800); margin-top: 0.15rem; }
+  .tl-desc strong { color: var(--black); }
+  .tl-note { font-size: 0.8rem; color: var(--gray-600); font-style: italic; margin-top: 0.1rem; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ HEADER -->
+<header class="site-header">
+  <div class="header-top">
+    <div>
+      <div class="header-meta">
+        <span>IEDEP</span> — Instituto de Educación Digital del Estado de Puebla &nbsp;·&nbsp;
+        Lic. en Sistemas Computacionales &nbsp;·&nbsp; <span>30 de mayo de 2026</span>
+      </div>
+      <h1 class="main-title">Unidad 2 — La <em>CPU</em><br>Clase 3</h1>
+    </div>
+  </div>
+  <div class="badge-row">
+    <span class="badge filled">Clase 3</span>
+    <span class="badge filled">Unidad 2 / 4</span>
+    <span class="badge">Modalidad Mixta</span>
+    <span class="badge">2° Cuatrimestre</span>
+    <span class="badge">Duración: 1 hora</span>
+  </div>
+  <div class="progress-bar">
+    <span>Avance:</span>
+    <div class="prog-unit done">U1 ✓</div>
+    <div class="prog-unit active">U2 ← HOY</div>
+    <div class="prog-unit">U3</div>
+    <div class="prog-unit">U4</div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ TOC -->
+<nav class="toc">
+  <div class="toc-title">Contenido de la clase</div>
+  <ol>
+    <li><a href="#competencias">Competencias a desarrollar</a></li>
+    <li><a href="#agenda">Agenda de la sesión (60 min)</a></li>
+    <li><a href="#intro">Introducción: ¿qué es la CPU?</a></li>
+    <li><a href="#estructura">Estructura interna de la CPU</a></li>
+    <li><a href="#registros">Registros internos</a></li>
+    <li><a href="#ciclo">Ciclo de instrucción</a></li>
+    <li><a href="#actividad1">✏️ Actividad 1 — Simulador del ciclo</a></li>
+    <li><a href="#actividad2">🖥️ Actividad 2 — Ver datos reales en Windows</a></li>
+    <li><a href="#sintesis">Síntesis y conceptos clave</a></li>
+    <li><a href="#evaluacion">Lista de cotejo</a></li>
+    <li><a href="#proxima">Próxima clase</a></li>
+    <li><a href="#biblio">Bibliografía</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════════════════════ COMPETENCIAS -->
+<section id="competencias">
+  <div class="section-label">Sección 1</div>
+  <h2>Competencias a Desarrollar</h2>
+
+  <div class="callout">
+    <strong>Propósito de la Unidad 2</strong>
+    Examinar la operación interna del procesador y su ciclo de instrucción mediante el diagnóstico de ineficiencias en el flujo de datos, con el fin de proponer optimizaciones en la ejecución de procesos.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Competencia</th>
+          <th>¿Qué se espera que logres?</th>
+          <th>Nivel</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Identificar</strong></td>
+          <td>Los componentes internos de la CPU: ALU, Unidad de Control y registros, y la función específica de cada uno.</td>
+          <td><span class="tag">Conocimiento</span></td>
+        </tr>
+        <tr>
+          <td><strong>Explicar</strong></td>
+          <td>El ciclo de instrucción completo (Fetch → Decode → Execute → Write-back) paso a paso, describiendo qué ocurre en cada etapa.</td>
+          <td><span class="tag">Comprensión</span></td>
+        </tr>
+        <tr>
+          <td><strong>Clasificar</strong></td>
+          <td>Los tipos de registros internos (datos, dirección, control, estado) y su rol durante la ejecución de instrucciones.</td>
+          <td><span class="tag">Análisis</span></td>
+        </tr>
+        <tr>
+          <td><strong>Aplicar</strong></td>
+          <td>Los conceptos del ciclo de instrucción para trazar la ejecución de un programa simple, verificando los valores de registros en cada paso.</td>
+          <td><span class="tag green">Aplicación</span></td>
+        </tr>
+        <tr>
+          <td><strong>Usar herramientas</strong></td>
+          <td>El Administrador de tareas y CPU-Z de Windows (o simulador web) para observar datos reales de un procesador y relacionarlos con los conceptos teóricos.</td>
+          <td><span class="tag green">Aplicación</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ AGENDA -->
+<section id="agenda">
+  <div class="section-label">Sección 2</div>
+  <h2>Agenda de la Sesión — 60 Minutos</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-time">0 – 5 min</div>
+      <div class="tl-desc"><strong>Repaso exprés de la Unidad 1</strong> — 3 preguntas orales: bus del sistema, diferencia ISA vs. Organización, jerarquía de interconexiones.</div>
+      <div class="tl-note">El profesor pregunta al azar, los alumnos responden brevemente.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">5 – 15 min</div>
+      <div class="tl-desc"><strong>Tema 2.1 — Estructura interna de la CPU</strong> — ALU, Unidad de Control, registros, conexiones internas.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">15 – 30 min</div>
+      <div class="tl-desc"><strong>Tema 2.2 — El ciclo de instrucción</strong> — Fetch, Decode, Execute, Write-back. Diagrama paso a paso.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">30 – 42 min</div>
+      <div class="tl-desc"><strong>✏️ Actividad 1 — Simulador del ciclo de instrucción</strong> — Trazar la ejecución de 3 instrucciones con el simulador interactivo de esta página.</div>
+      <div class="tl-note">Individual. Registra observaciones en tu cuaderno.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">42 – 55 min</div>
+      <div class="tl-desc"><strong>🖥️ Actividad 2 — Lectura de datos reales</strong> — Ver CPU en Windows (Adm. de tareas / CPU-Z) o simulador web. Relacionar datos con la teoría.</div>
+      <div class="tl-note">En parejas si hay computadoras disponibles; de forma grupal con el proyector si no.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-time">55 – 60 min</div>
+      <div class="tl-desc"><strong>Síntesis y cierre</strong> — Mapa conceptual oral en pizarrón. Asignación de lectura para la siguiente clase.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ INTRO -->
+<section id="intro">
+  <div class="section-label">Sección 3</div>
+  <h2>Introducción: ¿Qué es la CPU?</h2>
+
+  <p>La <strong>Unidad Central de Procesamiento</strong> (CPU, por sus siglas en inglés: <em>Central Processing Unit</em>) es el componente principal de cualquier sistema de cómputo. Es el circuito integrado encargado de <strong>interpretar y ejecutar las instrucciones</strong> de los programas.</p>
+
+  <div class="callout">
+    <strong>Definición formal</strong>
+    La CPU es el componente hardware que ejecuta las instrucciones de un programa de computadora realizando las operaciones básicas: aritmética, lógica, control y entrada/salida. Toda la actividad computacional pasa, de una u otra forma, por la CPU.
+  </div>
+
+  <h3>¿Por qué es importante estudiar la CPU?</h3>
+  <ul>
+    <li>Determina la <strong>velocidad de procesamiento</strong> del sistema completo.</li>
+    <li>Sus limitaciones crean los <strong>cuellos de botella</strong> que el ingeniero debe diagnosticar.</li>
+    <li>Comprender su organización permite <strong>optimizar software</strong> (compiladores, sistemas operativos, aplicaciones de alto rendimiento).</li>
+    <li>Es la base para entender técnicas avanzadas: <strong>paralelismo, pipelines, multithreading</strong>.</li>
+  </ul>
+
+  <div class="callout amber">
+    <strong>Conexión con la Unidad 1</strong>
+    En la Unidad 1 aprendimos que la <em>Arquitectura (ISA)</em> define qué instrucciones puede ejecutar el procesador. Ahora veremos cómo la <em>Organización</em> de la CPU ejecuta esas instrucciones internamente, ciclo a ciclo.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ ESTRUCTURA -->
+<section id="estructura">
+  <div class="section-label">Sección 4 — Tema 2.1</div>
+  <h2>Estructura Interna de la CPU</h2>
+
+  <p>Internamente, toda CPU —independientemente del fabricante o la ISA— está organizada alrededor de tres componentes fundamentales que trabajan en coordinación:</p>
+
+  <!-- Diagrama CPU -->
+  <div class="diagram">
+    <div class="diagram-title">Diagrama — Estructura interna de la CPU y conexión con la memoria</div>
+    <div class="cpu-diagram">
+
+      <div class="cpu-outer">
+        <div class="cpu-label">CPU (Procesador)</div>
+        <div class="cpu-inner">
+
+          <!-- UC -->
+          <div class="cpu-block highlight" style="grid-column:1;">
+            Unidad de Control
+            <small>Genera señales de control, coordina el ciclo de instrucción</small>
+          </div>
+
+          <!-- ALU -->
+          <div class="cpu-block highlight" style="grid-column:2;">
+            ALU
+            <small>Aritmética y lógica: +, −, ×, ÷, AND, OR, NOT, CMP</small>
+          </div>
+
+          <!-- Registros -->
+          <div style="grid-column:3; display:flex; flex-direction:column; gap:0.3rem;">
+            <div style="font-size:0.72rem; font-weight:700; color:var(--purple); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.04em; padding:0.2rem 0.4rem; background:var(--purple-lt);">Registros Internos</div>
+            <div class="reg-grid">
+              <div class="reg-box">PC</div>
+              <div class="reg-box">IR</div>
+              <div class="reg-box">MAR</div>
+              <div class="reg-box">MBR</div>
+              <div class="reg-box">AX</div>
+              <div class="reg-box">BX</div>
+              <div class="reg-box">CX</div>
+              <div class="reg-box">DX</div>
+              <div class="reg-box">SP</div>
+              <div class="reg-box">BP</div>
+              <div class="reg-box">FLAGS</div>
+              <div class="reg-box">...</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cpu-bus">BUS DEL SISTEMA — Datos / Direcciones / Control</div>
+
+      <div class="cpu-mem">
+        <div class="mem-box">💾 Memoria RAM<br><small style="font-size:0.7rem;color:var(--gray-600);">Instrucciones + Datos del programa</small></div>
+        <div class="mem-box">⚡ Caché L1 / L2 / L3<br><small style="font-size:0.7rem;color:var(--gray-600);">Copia rápida de datos frecuentes</small></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ALU -->
+  <h3>A — Unidad Aritmético-Lógica (ALU)</h3>
+  <p>La ALU es el "motor de cálculo" de la CPU. Recibe operandos, realiza una operación y devuelve un resultado junto con <strong>flags de estado</strong> (resultado cero, desbordamiento, acarreo, negativo, etc.).</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tipo de operación</th><th>Ejemplos</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Aritméticas</strong></td><td><code>ADD</code>, <code>SUB</code>, <code>MUL</code>, <code>DIV</code></td><td>Operaciones numéricas sobre enteros o punto flotante.</td></tr>
+        <tr><td><strong>Lógicas</strong></td><td><code>AND</code>, <code>OR</code>, <code>NOT</code>, <code>XOR</code></td><td>Operaciones bit a bit entre dos operandos.</td></tr>
+        <tr><td><strong>Desplazamiento</strong></td><td><code>SHL</code>, <code>SHR</code>, <code>ROL</code></td><td>Mueven bits a izquierda o derecha (equivale a ×2 o ÷2).</td></tr>
+        <tr><td><strong>Comparación</strong></td><td><code>CMP</code>, <code>TEST</code></td><td>Comparan dos valores y actualizan los flags sin guardar resultado.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- UC -->
+  <h3>B — Unidad de Control (UC)</h3>
+  <p>La Unidad de Control es el "director de orquesta" de la CPU. No ejecuta cálculos; en cambio, <strong>coordina todos los demás componentes</strong> generando las señales de control correctas en el momento correcto para que la instrucción se ejecute.</p>
+
+  <div class="two-col">
+    <div>
+      <h4>Funciones principales</h4>
+      <ul>
+        <li>Obtener (fetch) la próxima instrucción desde memoria.</li>
+        <li>Decodificar el código de operación (opcode).</li>
+        <li>Generar señales para activar la ALU, registros y buses.</li>
+        <li>Controlar la escritura de resultados.</li>
+        <li>Manejar interrupciones y excepciones.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Tipos de implementación</h4>
+      <ul>
+        <li><strong>Cableada (Hardwired):</strong> lógica implementada en circuitos fijos. Más rápida. Usada en RISC.</li>
+        <li><strong>Microprogramada:</strong> las señales de control se almacenan en una memoria interna (microcódigo). Más flexible. Usada en CISC.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ REGISTROS -->
+<section id="registros">
+  <div class="section-label">Sección 5 — Tema 2.1</div>
+  <h2>Registros Internos del CPU</h2>
+
+  <p>Los registros son <strong>pequeñas memorias ultrarrápidas ubicadas dentro del propio chip</strong> del procesador. Son los operandos directos de la ALU y los intermediarios de todas las transferencias de datos. Su capacidad es mínima (unos pocos bytes cada uno), pero su velocidad es la más alta del sistema.</p>
+
+  <div class="callout">
+    <strong>Regla general</strong>
+    CPU → Registros → Caché L1 → Caché L2 → Caché L3 → RAM → Almacenamiento. Los registros son la memoria más rápida y costosa por bit. Acceso en 1 ciclo de reloj, sin latencia adicional.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Registro</th>
+          <th>Nombre completo</th>
+          <th>Función</th>
+          <th>Tamaño típico</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>PC</code></td>
+          <td>Program Counter<br><em>(o IP: Instruction Pointer)</em></td>
+          <td>Contiene la <strong>dirección de memoria</strong> de la próxima instrucción a ejecutar. Se incrementa automáticamente después de cada fetch.</td>
+          <td>64 bits (x86-64)</td>
+        </tr>
+        <tr>
+          <td><code>IR</code></td>
+          <td>Instruction Register</td>
+          <td>Almacena la <strong>instrucción actualmente en ejecución</strong> (la que se acaba de traer de memoria). La UC la decodifica desde aquí.</td>
+          <td>Variable (según ISA)</td>
+        </tr>
+        <tr>
+          <td><code>MAR</code></td>
+          <td>Memory Address Register</td>
+          <td>Contiene la <strong>dirección de memoria</strong> a la que se va a acceder (leer o escribir). Se conecta al bus de direcciones.</td>
+          <td>Igual al bus de dir.</td>
+        </tr>
+        <tr>
+          <td><code>MBR / MDR</code></td>
+          <td>Memory Buffer / Data Register</td>
+          <td>Almacena temporalmente el <strong>dato que se lee o escribe</strong> en memoria. Conectado al bus de datos.</td>
+          <td>Igual al bus de datos</td>
+        </tr>
+        <tr>
+          <td><code>AX, BX, CX, DX</code></td>
+          <td>Registros de propósito general</td>
+          <td>Almacenan <strong>operandos y resultados</strong> intermedios de la ALU. Son los "variables de trabajo" del procesador.</td>
+          <td>64 bits (RAX, RBX…)</td>
+        </tr>
+        <tr>
+          <td><code>SP</code></td>
+          <td>Stack Pointer</td>
+          <td>Apunta a la cima de la <strong>pila de llamadas</strong> (stack). Se usa al llamar funciones y manejar parámetros locales.</td>
+          <td>64 bits (RSP)</td>
+        </tr>
+        <tr>
+          <td><code>FLAGS / EFLAGS</code></td>
+          <td>Registro de estado / banderas</td>
+          <td>Contiene bits de estado que refleja el resultado de la última operación: <code>ZF</code> (cero), <code>CF</code> (acarreo), <code>SF</code> (signo), <code>OF</code> (overflow), <code>IF</code> (interrupción habilitada).</td>
+          <td>32/64 bits</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout amber">
+    <strong>Dato curioso — x86 vs ARM</strong>
+    Un procesador Intel x86-64 tiene 16 registros de propósito general de 64 bits (RAX, RBX, RCX, RDX, RSP, RBP, RSI, RDI, R8–R15). Un procesador ARM64 (como el Apple M1 o el Snapdragon) tiene 31 registros de propósito general de 64 bits (X0–X30). Más registros = menos accesos a memoria = potencialmente más rápido en operaciones complejas.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ CICLO -->
+<section id="ciclo">
+  <div class="section-label">Sección 6 — Tema 2.2</div>
+  <h2>El Ciclo de Instrucción (Fetch → Decode → Execute → Write-back)</h2>
+
+  <p>El ciclo de instrucción —también llamado <strong>ciclo Fetch-Decode-Execute</strong>— es la secuencia de pasos que la CPU repite sin parar desde que se enciende el sistema hasta que se apaga. <em>Cada instrucción del programa pasa por estas etapas</em>, aunque en procesadores modernos con <strong>pipeline</strong> varias instrucciones coexisten simultáneamente en etapas distintas.</p>
+
+  <!-- Diagrama ciclo -->
+  <div class="diagram">
+    <div class="diagram-title">Diagrama — Fases del ciclo de instrucción</div>
+    <div class="cycle-steps">
+      <div class="cycle-step">
+        <div class="step-num">Fase 1</div>
+        <div class="step-name">FETCH</div>
+        <div class="step-desc">La UC lee la instrucción en la dirección indicada por el PC y la carga en el IR. Luego incrementa el PC.</div>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="cycle-step">
+        <div class="step-num">Fase 2</div>
+        <div class="step-name">DECODE</div>
+        <div class="step-desc">La UC analiza el opcode del IR para determinar qué operación realizar y cuáles son los operandos.</div>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="cycle-step">
+        <div class="step-num">Fase 3</div>
+        <div class="step-name">FETCH OPS</div>
+        <div class="step-desc">Se obtienen los operandos necesarios: desde registros o desde memoria (si hay acceso a datos).</div>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="cycle-step">
+        <div class="step-num">Fase 4</div>
+        <div class="step-name">EXECUTE</div>
+        <div class="step-desc">La ALU realiza la operación indicada. Se actualizan los FLAGS según el resultado.</div>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="cycle-step">
+        <div class="step-num">Fase 5</div>
+        <div class="step-name">WRITE-BACK</div>
+        <div class="step-desc">El resultado se escribe en el registro destino o en la dirección de memoria indicada. El ciclo reinicia.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Ejemplo detallado: instrucción <code>ADD AX, BX</code></h3>
+  <p>Supongamos que AX = 5, BX = 3, y la instrucción <code>ADD AX, BX</code> está en la dirección de memoria 0x1000.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Fase</th><th>¿Qué ocurre?</th><th>Registros afectados</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Fetch</strong></td>
+          <td>PC = 0x1000. MAR ← 0x1000. Se lee la instrucción de memoria. MBR ← <code>ADD AX, BX</code>. IR ← MBR. PC ← 0x1002 (siguiente instrucción).</td>
+          <td>PC, MAR, MBR, IR</td>
+        </tr>
+        <tr>
+          <td><strong>Decode</strong></td>
+          <td>La UC analiza el opcode en IR: es <code>ADD</code>. Operandos: registro AX (destino y fuente 1) y registro BX (fuente 2). Se activan las señales de control correspondientes.</td>
+          <td>IR, UC (señales internas)</td>
+        </tr>
+        <tr>
+          <td><strong>Fetch Operands</strong></td>
+          <td>Se leen los valores: AX = 5, BX = 3. Ambos están disponibles en registros, sin necesidad de acceder a memoria.</td>
+          <td>AX, BX</td>
+        </tr>
+        <tr>
+          <td><strong>Execute</strong></td>
+          <td>ALU recibe 5 y 3. Realiza la suma: 5 + 3 = 8. FLAGS: ZF=0 (no es cero), CF=0 (no hay acarreo), SF=0 (positivo), OF=0 (no overflow).</td>
+          <td>ALU, FLAGS</td>
+        </tr>
+        <tr>
+          <td><strong>Write-back</strong></td>
+          <td>El resultado 8 se escribe en AX. AX ← 8. BX no cambia (era solo fuente). Listo para el siguiente ciclo.</td>
+          <td>AX</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout green">
+    <strong>Punto clave: pipeline</strong>
+    En un procesador simple, cada instrucción usa 5 ciclos de reloj. En un procesador con <strong>pipeline de 5 etapas</strong>, mientras la instrucción 1 está en Execute, la instrucción 2 está en Decode y la instrucción 3 está en Fetch, todo simultáneamente. Esto es lo que permite a una CPU moderna ejecutar miles de millones de instrucciones por segundo.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ ACTIVIDAD 1 -->
+<section id="actividad1">
+  <div class="section-label">Sección 7 — Actividad Práctica 1</div>
+  <h2>✏️ Actividad 1 — Simulador del Ciclo de Instrucción</h2>
+  <p style="margin-bottom:1.4rem;">Usa el simulador interactivo para trazar la ejecución de un programa sencillo instrucción por instrucción. Observa cómo cambian los registros en cada fase del ciclo.</p>
+
+  <div class="simulator">
+    <div class="sim-header">
+      <div class="sim-dot active"></div>
+      <div class="sim-dot"></div>
+      <span>Simulador CPU — Ciclo de Instrucción</span>
+      <span style="margin-left:auto; font-size:0.7rem; opacity:0.7;">Registros x86 simplificados</span>
+    </div>
+    <div class="sim-body">
+
+      <!-- Registros -->
+      <div style="font-family:var(--font-mono);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-600);margin-bottom:0.5rem;">Estado de Registros</div>
+      <div class="reg-sim-grid" id="reg-display">
+        <div class="reg-sim"><div class="reg-sim-name">PC</div><div class="reg-sim-val" id="r-pc">0x0000</div><div class="reg-sim-desc">Program Counter</div></div>
+        <div class="reg-sim"><div class="reg-sim-name">IR</div><div class="reg-sim-val" id="r-ir">—</div><div class="reg-sim-desc">Instruction Register</div></div>
+        <div class="reg-sim"><div class="reg-sim-name">AX</div><div class="reg-sim-val" id="r-ax">0</div><div class="reg-sim-desc">Registro general</div></div>
+        <div class="reg-sim"><div class="reg-sim-name">BX</div><div class="reg-sim-val" id="r-bx">0</div><div class="reg-sim-desc">Registro general</div></div>
+        <div class="reg-sim"><div class="reg-sim-name">CX</div><div class="reg-sim-val" id="r-cx">0</div><div class="reg-sim-desc">Registro general</div></div>
+        <div class="reg-sim"><div class="reg-sim-name">MAR</div><div class="reg-sim-val" id="r-mar">—</div><div class="reg-sim-desc">Mem. Address Reg.</div></div>
+        <div class="reg-sim"><div class="reg-sim-name">MBR</div><div class="reg-sim-val" id="r-mbr">—</div><div class="reg-sim-desc">Mem. Buffer Reg.</div></div>
+        <div class="reg-sim"><div class="reg-sim-name">FLAGS</div><div class="reg-sim-val" id="r-flags">ZF=0 CF=0</div><div class="reg-sim-desc">Registro de estado</div></div>
+      </div>
+
+      <!-- Programa -->
+      <div style="font-family:var(--font-mono);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-600);margin:1rem 0 0.4rem;">Programa en memoria (instrucciones)</div>
+      <div class="sim-program" id="program-view">
+        <div class="prog-line" id="pline-0"><div class="line-num">0</div><div class="line-code">MOV AX, 10 &nbsp;&nbsp;&nbsp;; AX ← 10</div></div>
+        <div class="prog-line" id="pline-1"><div class="line-num">1</div><div class="line-code">MOV BX, 5 &nbsp;&nbsp;&nbsp;&nbsp;; BX ← 5</div></div>
+        <div class="prog-line" id="pline-2"><div class="line-num">2</div><div class="line-code">ADD AX, BX &nbsp;&nbsp;; AX ← AX + BX</div></div>
+        <div class="prog-line" id="pline-3"><div class="line-num">3</div><div class="line-code">MOV CX, AX &nbsp;&nbsp;; CX ← AX</div></div>
+        <div class="prog-line" id="pline-4"><div class="line-num">4</div><div class="line-code">SUB AX, 3 &nbsp;&nbsp;&nbsp;; AX ← AX - 3</div></div>
+        <div class="prog-line" id="pline-5"><div class="line-num">5</div><div class="line-code">HLT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Detener</div></div>
+      </div>
+
+      <!-- Controles -->
+      <div class="sim-controls">
+        <button class="sim-btn primary" onclick="simStep()">▶ Ejecutar siguiente instrucción</button>
+        <button class="sim-btn" onclick="simRun()">⏩ Ejecutar todo</button>
+        <button class="sim-btn" onclick="simReset()">↺ Reiniciar</button>
+      </div>
+
+      <!-- Fase actual -->
+      <div style="font-family:var(--font-mono);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-600);margin-bottom:0.4rem;">Registro de ejecución (log)</div>
+      <div class="sim-output" id="sim-log">
+        Presiona "Ejecutar siguiente instrucción" para iniciar la simulación.<br>
+        <span style="color:var(--gray-400);">Observa cómo cambian PC, IR, MAR, MBR y los registros de datos en cada instrucción.</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Preguntas de reflexión -->
+  <div class="activity">
+    <div class="activity-header">
+      <h3>Preguntas de Reflexión — Actividad 1</h3>
+      <span class="activity-time">Responde en tu cuaderno</span>
+    </div>
+    <div class="activity-body">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Observa el PC</h4>
+          <p>¿Qué valor tiene el PC antes de ejecutar la instrucción 0? ¿Y después? ¿Cuánto se incrementa en cada paso? ¿Por qué crees que se incrementa esa cantidad específica?</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Traza el ADD AX, BX</h4>
+          <p>Cuando se ejecuta la instrucción <code>ADD AX, BX</code>: ¿qué valores tenían AX y BX antes? ¿Qué valor quedó en AX? ¿Qué flags se actualizaron? ¿Por qué ZF no se activó en este caso?</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Rol del IR</h4>
+          <p>¿Qué instrucción contiene el IR durante la ejecución del <code>SUB AX, 3</code>? ¿La UC lee directamente de memoria o del IR? Explica con tus palabras la diferencia entre el PC y el IR.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <h4>Propón una instrucción adicional</h4>
+          <p>Agrega mentalmente (o en papel) una instrucción <code>ADD AX, CX</code> después de la instrucción 3. ¿Qué valor tendría AX al final si incluyeras esa instrucción? ¿Qué registros cambiarían?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ ACTIVIDAD 2 -->
+<section id="actividad2">
+  <div class="section-label">Sección 8 — Actividad Práctica 2</div>
+  <h2>🖥️ Actividad 2 — Ver Datos Reales del CPU</h2>
+  <p>En esta actividad vas a observar los datos reales de un procesador usando herramientas disponibles en Windows o, si no tienes acceso, usando simuladores web gratuitos. El objetivo es <strong>conectar la teoría con un procesador real</strong>.</p>
+
+  <div class="callout">
+    <strong>Opción A — Windows disponible</strong>
+    Usa el Administrador de tareas y CPU-Z para ver los datos de tu procesador.
+  </div>
+
+  <!-- Opción A -->
+  <h3>Opción A: Windows — Administrador de Tareas</h3>
+
+  <div class="win-exercise">
+    <div class="win-label">Paso a paso — Administrador de Tareas</div>
+    <div class="paso">
+      <div class="paso-num">1</div>
+      <div class="paso-content">
+        <h4>Abrir el Administrador de Tareas</h4>
+        <p>Presiona <code>Ctrl + Shift + Esc</code> simultáneamente, o haz clic derecho en la barra de tareas y selecciona "Administrador de tareas". En Windows 11 también puedes buscarlo en el menú inicio.</p>
+      </div>
+    </div>
+    <div class="paso">
+      <div class="paso-num">2</div>
+      <div class="paso-content">
+        <h4>Ir a la pestaña "Rendimiento" → CPU</h4>
+        <p>Haz clic en la pestaña <strong>Rendimiento</strong> y selecciona <strong>CPU</strong> en el panel izquierdo. Verás una gráfica en tiempo real del uso del procesador.</p>
+        <p><strong>Datos a identificar y anotar en tu cuaderno:</strong></p>
+        <ul>
+          <li>Nombre del procesador (fabricante, modelo, generación)</li>
+          <li>Velocidad base y velocidad máxima (en GHz)</li>
+          <li>Número de núcleos físicos y procesadores lógicos (hilos)</li>
+          <li>Tamaño de la caché L1, L2 y L3</li>
+          <li>% de uso actual de la CPU</li>
+        </ul>
+      </div>
+    </div>
+    <div class="paso">
+      <div class="paso-num">3</div>
+      <div class="paso-content">
+        <h4>Relaciona lo que ves con la teoría</h4>
+        <p>Una vez que tienes los datos, responde:</p>
+        <ul>
+          <li>¿Cuántos ciclos de instrucción puede iniciar por segundo tu CPU? (Pista: frecuencia en Hz = ciclos por segundo)</li>
+          <li>Si tiene 4 núcleos, ¿cuántos ciclos de instrucción puede haber simultáneamente?</li>
+          <li>¿Cuántos procesadores lógicos tiene? ¿Por qué hay más lógicos que físicos? (Pista: Hyper-Threading)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="paso">
+      <div class="paso-num">4</div>
+      <div class="paso-content">
+        <h4>Provocar carga en la CPU y observar</h4>
+        <p>Abre varias pestañas del navegador, reproduce un video en YouTube y abre una hoja de cálculo. Observa cómo sube el % de uso de la CPU en tiempo real. ¿Cómo responde la frecuencia del procesador (Turbo Boost)?</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CPU-Z -->
+  <div class="callout amber">
+    <strong>Herramienta adicional: CPU-Z (gratuito)</strong>
+    CPU-Z es una utilidad gratuita que muestra información detallada del procesador: arquitectura (ISA), familia, nombre en código, proceso de fabricación (nm), voltaje, multiplicador y mucho más. Descarga en: <strong>cpuid.com/softwares/cpu-z.html</strong>
+  </div>
+
+  <div class="win-exercise">
+    <div class="win-label">CPU-Z — Datos a registrar</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo en CPU-Z</th><th>¿Dónde encontrarlo?</th><th>Relación con la teoría</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Name</strong></td><td>Pestaña CPU</td><td>Modelo del procesador — identifica la familia y generación.</td></tr>
+          <tr><td><strong>Code Name</strong></td><td>Pestaña CPU</td><td>Nombre interno de la microarquitectura (organización): ej. "Raptor Lake".</td></tr>
+          <tr><td><strong>Technology</strong></td><td>Pestaña CPU</td><td>Proceso de fabricación en nm — afecta eficiencia energética y densidad.</td></tr>
+          <tr><td><strong>Specification</strong></td><td>Pestaña CPU</td><td>Nombre completo tal como lo reporta la ISA.</td></tr>
+          <tr><td><strong>Instructions</strong></td><td>Pestaña CPU</td><td>Extensiones de la ISA soportadas: SSE4, AVX-512, etc.</td></tr>
+          <tr><td><strong>Core Speed</strong></td><td>Pestaña CPU</td><td>Frecuencia actual en tiempo real. Relacionada con ciclos/segundo.</td></tr>
+          <tr><td><strong>L1 / L2 / L3 Cache</strong></td><td>Pestaña Cache</td><td>Tamaño de cada nivel de caché — jerarquía de memoria (Unidad 1).</td></tr>
+          <tr><td><strong>Cores / Threads</strong></td><td>Pestaña CPU</td><td>Núcleos físicos y lógicos. Relacionado con paralelismo (Tema 2.4).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Opción B -->
+  <hr>
+  <div class="callout green">
+    <strong>Opción B — Sin Windows / Simulador Web</strong>
+    Si no tienes acceso a una computadora con Windows, puedes usar los simuladores web gratuitos que se listan a continuación. Funcionan en el navegador del celular o tablet.
+  </div>
+
+  <h3>Opción B: Simuladores y Herramientas Web</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Herramienta</th><th>URL</th><th>¿Para qué sirve en esta clase?</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Visual 6502</strong></td>
+          <td><code>visual6502.org/JSSim</code></td>
+          <td>Simulación a nivel de transistores del procesador MOS 6502. Observa el ciclo de instrucción real ciclo a ciclo, con animación de señales.</td>
+        </tr>
+        <tr>
+          <td><strong>CPU Sim (Little Man Computer)</strong></td>
+          <td><code>peterhigginson.co.uk/LMC</code></td>
+          <td>Modelo simplificado de CPU con ensamblador. Escribe programas, ejecútalos paso a paso y observa PC, acumulador y memoria. Ideal para principiantes.</td>
+        </tr>
+        <tr>
+          <td><strong>CPUlator (ARMv7)</strong></td>
+          <td><code>cpulator.01xz.net</code></td>
+          <td>Simulador completo de procesador ARM. Permite escribir código ensamblador ARM y ejecutarlo paso a paso viendo todos los registros, flags y memoria.</td>
+        </tr>
+        <tr>
+          <td><strong>Simulador x86 — Compiler Explorer</strong></td>
+          <td><code>godbolt.org</code></td>
+          <td>Escribe código en C o C++ y observa el ensamblador x86-64 generado. Ideal para ver las instrucciones reales que produce el compilador.</td>
+        </tr>
+        <tr>
+          <td><strong>CPU Benchmark — UserBenchmark</strong></td>
+          <td><code>cpu.userbenchmark.com</code></td>
+          <td>Base de datos de benchmarks de procesadores reales. Compara características: núcleos, frecuencia, caché, IPC. Útil para relacionar organización con rendimiento.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="activity">
+    <div class="activity-header">
+      <h3>Instrucciones — Actividad 2 con Simulador Web (LMC)</h3>
+      <span class="activity-time">15 min</span>
+    </div>
+    <div class="activity-body">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Abrir el simulador Little Man Computer</h4>
+          <p>Ve a <code>peterhigginson.co.uk/LMC</code> en tu navegador. No requiere instalación. Verás una interfaz con una memoria de 100 posiciones, registros y un panel de ensamblador.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Ingresa el siguiente programa</h4>
+          <p>En el panel de código (texto a la izquierda), escribe o pega exactamente esto:</p>
+          <div class="terminal">
+<span class="out">// Programa LMC: suma dos números y muestra el resultado</span>
+<span class="cmd">INP</span>        <span class="out">; Lee un número del usuario → acumulador</span>
+<span class="cmd">STA</span> <span class="val">NUM1</span>    <span class="out">; Guarda en memoria[NUM1]</span>
+<span class="cmd">INP</span>        <span class="out">; Lee segundo número → acumulador</span>
+<span class="cmd">ADD</span> <span class="val">NUM1</span>    <span class="out">; Acumulador = acumulador + NUM1</span>
+<span class="cmd">OUT</span>        <span class="out">; Muestra el resultado</span>
+<span class="cmd">HLT</span>        <span class="out">; Detener ejecución</span>
+<span class="key">NUM1</span> <span class="cmd">DAT</span>    <span class="out">; Reserva espacio en memoria para NUM1</span>
+          </div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Ensamblar y ejecutar paso a paso</h4>
+          <p>Haz clic en <strong>"Assemble"</strong> (o "Compile"). Luego usa <strong>"Step"</strong> (un paso a la vez) en lugar de "Run". En cada paso observa:</p>
+          <ul>
+            <li>Qué instrucción se está ejecutando (resaltada en memoria)</li>
+            <li>El valor del <strong>Program Counter (PC)</strong></li>
+            <li>El valor del <strong>Acumulador</strong> (equivalente al AX)</li>
+            <li>Qué celda de memoria se accede (MAR)</li>
+          </ul>
+          <p>Cuando se pida <code>INP</code>, ingresa los valores <strong>7</strong> y <strong>5</strong>. El resultado esperado es <strong>12</strong>.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <h4>Modifica el programa y experimenta</h4>
+          <p>Cambia el <code>ADD NUM1</code> por <code>SUB NUM1</code>. ¿Qué resultado obtienes si ingresas 7 y 5? ¿Y si ingresas 3 y 8 (resultado negativo)? Observa qué pasa con el acumulador cuando el resultado es negativo en este modelo simplificado.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comandos Windows adicionales -->
+  <h3>Comandos adicionales en Windows (terminal)</h3>
+  <p>Si quieres ver información del procesador directamente desde la terminal de Windows, prueba estos comandos:</p>
+
+  <div class="cmd-label">CMD o PowerShell — Información del procesador</div>
+  <div class="terminal">
+<span class="prompt">C:\></span> <span class="cmd">wmic cpu get Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed</span>
+<span class="out">Name                                      NumberOfCores  NumberOfLogicalProcessors  MaxClockSpeed</span>
+<span class="val">Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz  8              16                         2904</span>
+
+<span class="section-comment">—— Ver velocidad en tiempo real ——</span>
+<span class="prompt">C:\></span> <span class="cmd">wmic cpu get CurrentClockSpeed, LoadPercentage</span>
+<span class="val">CurrentClockSpeed  LoadPercentage</span>
+<span class="val">2904               12</span>
+
+<span class="section-comment">—— Información detallada (PowerShell) ——</span>
+<span class="prompt">PS></span> <span class="cmd">Get-WmiObject Win32_Processor | Select-Object Name, NumberOfCores, L2CacheSize, L3CacheSize</span>
+<span class="val">Name          : Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz</span>
+<span class="val">NumberOfCores : 8</span>
+<span class="val">L2CacheSize   : 2048</span>
+<span class="val">L3CacheSize   : 16384</span>
+
+<span class="section-comment">—— Ver arquitectura e ISA ——</span>
+<span class="prompt">PS></span> <span class="cmd">Get-WmiObject Win32_Processor | Select-Object Architecture, Caption, AddressWidth</span>
+<span class="val">Architecture : 9</span>  <span class="ok"># 9 = x64</span>
+<span class="val">Caption      : Intel64 Family 6 Model 165 Stepping 5</span>
+<span class="val">AddressWidth : 64</span>
+  </div>
+
+  <div class="callout">
+    <strong>¿Qué significa "Architecture: 9"?</strong>
+    En WMI de Windows, el campo Architecture usa estos valores: 0 = x86 (32 bits), 9 = x64 (x86-64), 5 = ARM. El valor 9 confirma que el procesador usa la ISA x86-64 (compatible con instrucciones de 64 bits).
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ SÍNTESIS -->
+<section id="sintesis">
+  <div class="section-label">Sección 9</div>
+  <h2>Síntesis y Conceptos Clave</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Concepto</th><th>Definición precisa</th><th>Ejemplo concreto</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CPU</strong></td><td>Circuito integrado que interpreta y ejecuta las instrucciones de un programa.</td><td>Intel Core i9-14900K, AMD Ryzen 9 7950X, Apple M3</td></tr>
+        <tr><td><strong>ALU</strong></td><td>Circuito dentro de la CPU que realiza operaciones aritméticas y lógicas.</td><td>Suma 5+3=8, AND 0b1100 AND 0b1010 = 0b1000</td></tr>
+        <tr><td><strong>Unidad de Control</strong></td><td>Genera las señales de control para coordinar el ciclo de instrucción.</td><td>Lee el opcode ADD → activa la ALU, selecciona operandos, habilita escritura</td></tr>
+        <tr><td><strong>PC (Program Counter)</strong></td><td>Registro que apunta a la dirección de la próxima instrucción a ejecutar.</td><td>PC=0x1000 → fetch → PC=0x1002 (instrucción de 2 bytes)</td></tr>
+        <tr><td><strong>IR (Instruction Register)</strong></td><td>Almacena la instrucción actualmente en ejecución mientras la UC la procesa.</td><td>IR = "ADD AX, BX" durante el decode y execute</td></tr>
+        <tr><td><strong>Ciclo de instrucción</strong></td><td>Secuencia repetitiva: Fetch → Decode → Fetch Ops → Execute → Write-back.</td><td>Cada instrucción pasa por estas 5 fases cada vez que se ejecuta</td></tr>
+        <tr><td><strong>Flags</strong></td><td>Bits del registro de estado que reflejan características del último resultado.</td><td>ZF=1 si resultado es cero; CF=1 si hay acarreo; OF=1 si hay overflow</td></tr>
+        <tr><td><strong>Pipeline</strong></td><td>Técnica que permite ejecutar múltiples instrucciones simultáneamente en etapas distintas.</td><td>Mientras inst. 3 está en Execute, inst. 4 está en Decode e inst. 5 en Fetch</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="highlight-box">
+    <p><strong>La gran conexión — Unidades 1 y 2:</strong> La <em>Arquitectura (ISA)</em> define qué instrucciones puede entender la CPU (ADD, MOV, JMP…). La <em>Organización</em> de la CPU define cómo se ejecutan esas instrucciones internamente: cuántas etapas tiene el pipeline, cuántos registros hay, qué tan rápido opera la ALU. El <em>ciclo de instrucción</em> es el mecanismo que las une, ciclo a ciclo, a miles de millones de veces por segundo.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ EVALUACIÓN -->
+<section id="evaluacion">
+  <div class="section-label">Sección 10</div>
+  <h2>Lista de Cotejo — Clase 3</h2>
+  <p>Marca cada punto conforme lo vayas completando. Esta lista te ayuda a saber si lograste los objetivos de la sesión.</p>
+
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Puedo identificar y describir los tres componentes principales de la CPU (ALU, UC, Registros).</span></li>
+    <li><input type="checkbox"><span>Sé para qué sirven PC, IR, MAR, MBR y los registros de propósito general.</span></li>
+    <li><input type="checkbox"><span>Puedo explicar las 5 fases del ciclo de instrucción con mis propias palabras.</span></li>
+    <li><input type="checkbox"><span>Tracé correctamente la ejecución del programa en el simulador (Actividad 1) y respondí las preguntas de reflexión.</span></li>
+    <li><input type="checkbox"><span>Observé los datos de un procesador real (Windows) o en un simulador web y los anoté en mi cuaderno.</span></li>
+    <li><input type="checkbox"><span>Relacioné los datos observados (frecuencia, núcleos, caché) con los conceptos teóricos de la clase.</span></li>
+    <li><input type="checkbox"><span>Conozco la diferencia entre núcleos físicos y procesadores lógicos (Hyper-Threading).</span></li>
+    <li><input type="checkbox"><span>Entiendo cómo el pipeline mejora el rendimiento comparado con ejecutar instrucciones de forma secuencial.</span></li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════ PRÓXIMA CLASE -->
+<section id="proxima">
+  <div class="section-label">Sección 11</div>
+  <h2>Próxima Clase — Clase 4</h2>
+
+  <div class="callout">
+    <strong>Clase 4 — Unidad 2, continuación</strong>
+    Temas: 2.3 Tipos de procesadores CISC y RISC &nbsp;·&nbsp; 2.4 Procesamiento paralelo y segmentación (pipeline).
+  </div>
+
+  <h3>Para prepararte antes de la Clase 4</h3>
+  <ul>
+    <li>Revisa qué significa CISC (Complex Instruction Set Computer) y RISC (Reduced Instruction Set Computer). Busca un ejemplo de procesador de cada tipo.</li>
+    <li>Video recomendado: <strong>"RISC vs CISC"</strong> en YouTube (canal: Fireship o CS Dojo — cualquiera de menos de 10 min).</li>
+    <li>Opcional: explora <code>godbolt.org</code>, escribe un <code>int main(){ return 2+3; }</code> y observa las instrucciones ensamblador que genera el compilador para x86-64 vs ARM.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════ FOOTER -->
+<footer>
+  <div class="footer-iedep">
+    <strong>IEDEP</strong> — Instituto de Educación Digital del Estado de Puebla<br>
+    Licenciatura en Sistemas Computacionales · 2° Cuatrimestre<br>
+    Arquitectura de Computadoras · Clase 3 · 30 de mayo de 2026
+  </div>
+  <div id="biblio" class="biblio">
+    <div style="font-family:var(--font-mono);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:0.5rem;border-bottom:1px solid var(--gray-200);padding-bottom:0.3rem;">Bibliografía</div>
+    <cite>Stallings, W. (2024). <em>Organización y arquitectura de computadores</em> (7ª ed.). Pearson Educación.</cite>
+    <cite>Patterson, D. A. y Hennessy, J. L. (2021). <em>Computer Organization and Design RISC-V Edition</em>. Morgan Kaufmann.</cite>
+    <cite>Harris, S. L. y Harris, D. (2022). <em>Digital Design and Computer Architecture: ARM Edition</em>. Morgan Kaufmann.</cite>
+    <cite>Jiménez, D. (2015). <em>Introducción a las arquitecturas paralelas</em>. UOC.</cite>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════ SIMULADOR JS -->
+<script>
+  // Estado del simulador
+  const PROGRAM = [
+    { op: 'MOV', dst: 'AX', src: 'IMM', val: 10,  asm: 'MOV AX, 10'  },
+    { op: 'MOV', dst: 'BX', src: 'IMM', val: 5,   asm: 'MOV BX, 5'   },
+    { op: 'ADD', dst: 'AX', src: 'BX',  val: null, asm: 'ADD AX, BX'  },
+    { op: 'MOV', dst: 'CX', src: 'AX',  val: null, asm: 'MOV CX, AX'  },
+    { op: 'SUB', dst: 'AX', src: 'IMM', val: 3,    asm: 'SUB AX, 3'   },
+    { op: 'HLT', dst: null, src: null,  val: null, asm: 'HLT'          },
+  ];
+
+  let pc = 0;
+  let regs = { AX: 0, BX: 0, CX: 0 };
+  let ir = '—';
+  let mar = '—';
+  let mbr = '—';
+  let flags = { ZF: 0, CF: 0, SF: 0 };
+  let running = false;
+  let done = false;
+  let logLines = [];
+
+  function pcHex(n) { return '0x' + (n * 2).toString(16).toUpperCase().padStart(4,'0'); }
+
+  function updateDisplay() {
+    document.getElementById('r-pc').textContent    = pcHex(pc);
+    document.getElementById('r-ir').textContent    = ir;
+    document.getElementById('r-ax').textContent    = regs.AX;
+    document.getElementById('r-bx').textContent    = regs.BX;
+    document.getElementById('r-cx').textContent    = regs.CX;
+    document.getElementById('r-mar').textContent   = mar;
+    document.getElementById('r-mbr').textContent   = mbr;
+    document.getElementById('r-flags').textContent = `ZF=${flags.ZF} CF=${flags.CF} SF=${flags.SF}`;
+    document.getElementById('sim-log').innerHTML   = logLines.slice(-12).join('<br>') || '<span style="color:var(--gray-400)">—</span>';
+
+    // Resaltar línea activa
+    for (let i = 0; i < PROGRAM.length; i++) {
+      const el = document.getElementById('pline-' + i);
+      if (!el) continue;
+      el.classList.remove('active','done');
+      if (i < pc) el.classList.add('done');
+      if (i === pc && !done) el.classList.add('active');
+    }
+  }
+
+  function log(html) { logLines.push(html); }
+
+  function simStep() {
+    if (done) { log('<span class="log-done">— Programa terminado. Presiona ↺ para reiniciar. —</span>'); updateDisplay(); return; }
+    if (pc >= PROGRAM.length) { done = true; updateDisplay(); return; }
+
+    const instr = PROGRAM[pc];
+
+    // FETCH
+    mar = pcHex(pc);
+    mbr = instr.asm;
+    ir  = instr.asm;
+    log(`<span class="log-step">[FETCH]</span>   PC=${pcHex(pc)} → MAR=${mar} → IR="${instr.asm}"`);
+
+    // DECODE + EXECUTE + WRITE-BACK
+    if (instr.op === 'HLT') {
+      log(`<span class="log-step">[DECODE]</span>  Opcode: HLT → Detener ejecución`);
+      log(`<span class="log-done">✓ Programa completado. AX=${regs.AX}  BX=${regs.BX}  CX=${regs.CX}</span>`);
+      done = true;
+      pc++;
+      updateDisplay();
+      return;
+    }
+
+    if (instr.op === 'MOV') {
+      const srcVal = instr.src === 'IMM' ? instr.val : regs[instr.src];
+      log(`<span class="log-step">[DECODE]</span>  Opcode: MOV  Dst: ${instr.dst}  Src: ${instr.src === 'IMM' ? instr.val : instr.src + '=' + srcVal}`);
+      log(`<span class="log-step">[EXECUTE]</span> Transferencia directa: ${instr.dst} ← ${srcVal}`);
+      regs[instr.dst] = srcVal;
+      log(`<span class="log-reg">[WRITE]</span>   ${instr.dst} = ${regs[instr.dst]}`);
+    }
+
+    if (instr.op === 'ADD') {
+      const a = regs[instr.dst];
+      const b = regs[instr.src];
+      const res = a + b;
+      log(`<span class="log-step">[DECODE]</span>  Opcode: ADD  Operandos: ${instr.dst}=${a}  ${instr.src}=${b}`);
+      log(`<span class="log-step">[EXECUTE]</span> ALU: ${a} + ${b} = ${res}`);
+      flags.ZF = res === 0 ? 1 : 0;
+      flags.CF = res > 65535 ? 1 : 0;
+      flags.SF = res < 0 ? 1 : 0;
+      regs[instr.dst] = res;
+      log(`<span class="log-reg">[WRITE]</span>   ${instr.dst} = ${res}  FLAGS: ZF=${flags.ZF} CF=${flags.CF} SF=${flags.SF}`);
+    }
+
+    if (instr.op === 'SUB') {
+      const a = regs[instr.dst];
+      const b = instr.src === 'IMM' ? instr.val : regs[instr.src];
+      const res = a - b;
+      log(`<span class="log-step">[DECODE]</span>  Opcode: SUB  Operandos: ${instr.dst}=${a}  ${instr.src === 'IMM' ? instr.val : instr.src + '=' + b}`);
+      log(`<span class="log-step">[EXECUTE]</span> ALU: ${a} − ${b} = ${res}`);
+      flags.ZF = res === 0 ? 1 : 0;
+      flags.SF = res < 0 ? 1 : 0;
+      flags.CF = res < 0 ? 1 : 0;
+      regs[instr.dst] = res;
+      log(`<span class="log-reg">[WRITE]</span>   ${instr.dst} = ${res}  FLAGS: ZF=${flags.ZF} CF=${flags.CF} SF=${flags.SF}`);
+    }
+
+    pc++;
+    updateDisplay();
+  }
+
+  async function simRun() {
+    if (done) { simReset(); }
+    while (!done && pc < PROGRAM.length) {
+      simStep();
+      await new Promise(r => setTimeout(r, 600));
+    }
+  }
+
+  function simReset() {
+    pc = 0;
+    regs = { AX: 0, BX: 0, CX: 0 };
+    ir = '—'; mar = '—'; mbr = '—';
+    flags = { ZF: 0, CF: 0, SF: 0 };
+    done = false;
+    logLines = ['<span style="color:var(--gray-400)">Simulador reiniciado. Listo para ejecutar.</span>'];
+    updateDisplay();
+  }
+
+  // Init
+  updateDisplay();
+</script>
+
+</body>
+</html>
