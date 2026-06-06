@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instrumento de Evaluación — Clase 3 — Arquitectura de Computadoras</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+
+<style>
+/* ── Overrides y componentes específicos de evaluación ────── */
+
+/* Anti-copia */
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+input, textarea, select {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+
+/* Layout impresión */
+@media print {
+  .no-print { display: none !important; }
+  .print-break { page-break-before: always; }
+  body { font-size: 13px; }
+  .site-header { padding: 1rem 1.5rem; }
+  .class-hero { padding: 1.75rem 1.5rem; }
+  .page-wrapper { padding: 0 1.5rem 2rem; }
+  .eval-controls { display: none !important; }
+  .result-panel { display: block !important; }
+  input[type="text"], input[type="number"], textarea {
+    border: 1px solid #ccc !important;
+    background: white !important;
+  }
+  input[type="radio"], input[type="checkbox"] {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .radio-option.selected { background: var(--guinda-light) !important; }
+  .opt-bubble.selected-bubble { background: var(--guinda) !important; color: white !important; }
+  table { page-break-inside: avoid; }
+  .section { page-break-inside: avoid; }
+  .eval-score-bar { display: none; }
+}
+
+/* ── Datos del alumno ─────────────────────────────────────── */
+.student-form {
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--guinda);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2.5rem;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.student-form-title {
+  font-family: var(--font-ui);
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--guinda);
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+  display: block;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .85rem 1.5rem;
+}
+@media (max-width:600px) { .field-grid { grid-template-columns: 1fr; } }
+
+.field-group { display: flex; flex-direction: column; gap: .25rem; }
+.field-group.full { grid-column: 1 / -1; }
+
+.field-label {
+  font-family: var(--font-ui);
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink-secondary);
+}
+
+.field-input {
+  font-family: var(--font-body);
+  font-size: .97rem;
+  color: var(--ink);
+  border: none;
+  border-bottom: 1.5px solid var(--border-strong);
+  background: transparent;
+  padding: .35rem 0;
+  width: 100%;
+  outline: none;
+  transition: border-color .2s;
+}
+.field-input:focus { border-bottom-color: var(--guinda); }
+.field-input::placeholder { color: var(--ink-muted); font-style: italic; }
+
+/* ── Indicador de progreso ────────────────────────────────── */
+.eval-score-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--white);
+  border-bottom: 2px solid var(--border);
+  padding: .6rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  color: var(--ink-secondary);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.score-label { font-weight: 600; color: var(--guinda); }
+.score-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  max-width: 300px;
+}
+.score-fill {
+  height: 100%;
+  background: var(--guinda);
+  border-radius: 3px;
+  width: 0%;
+  transition: width .4s ease;
+}
+.score-count { font-weight: 700; color: var(--guinda); min-width: 60px; text-align: right; }
+
+/* ── Secciones de evaluación ──────────────────────────────── */
+.eval-section {
+  margin-bottom: 3rem;
+  counter-increment: eval-section;
+}
+
+.eval-section-header {
+  background: var(--guinda);
+  color: var(--white);
+  padding: .75rem 1.4rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.eval-section-header h2 {
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.section-pts {
+  font-family: var(--font-ui);
+  font-size: .75rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.75);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+/* ── Instrucción de sección ───────────────────────────────── */
+.section-instruction {
+  font-family: var(--font-ui);
+  font-size: .88rem;
+  color: var(--ink-secondary);
+  background: var(--surface);
+  border-left: 3px solid var(--guinda-rule);
+  padding: .65rem 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  line-height: 1.55;
+}
+
+/* ── Preguntas de opción múltiple ─────────────────────────── */
+.question-block {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.question-block:last-child { border-bottom: none; padding-bottom: 0; }
+
+.question-num-row {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  margin-bottom: .85rem;
+}
+
+.q-num {
+  min-width: 28px;
+  height: 28px;
+  background: var(--guinda-light);
+  border: 1.5px solid var(--guinda-rule);
+  color: var(--guinda);
+  font-family: var(--font-ui);
+  font-size: .78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  margin-top: 2px;
+}
+
+.q-text {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--ink);
+  line-height: 1.65;
+}
+
+.q-text .q-pts {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: .05rem .35rem;
+  border-radius: 20px;
+  margin-left: .5rem;
+  vertical-align: middle;
+}
+
+.radio-options { display: flex; flex-direction: column; gap: .5rem; padding-left: 2.35rem; }
+
+.radio-option {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .6rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  background: var(--off-white);
+  line-height: 1;
+}
+
+.radio-option:hover { background: var(--guinda-light); border-color: var(--guinda-rule); }
+.radio-option.selected { background: var(--guinda-light); border-color: var(--guinda); }
+.radio-option.correct  { background: #e8f5e9; border-color: #4caf50; }
+.radio-option.wrong    { background: #fdecea; border-color: #e57373; }
+
+.opt-bubble {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--guinda-rule);
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--guinda);
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all .15s;
+}
+
+.radio-option.selected .opt-bubble,
+.radio-option.selected-bubble {
+  background: var(--guinda);
+  color: var(--white);
+  border-color: var(--guinda);
+}
+
+.opt-label {
+  font-family: var(--font-body);
+  font-size: .95rem;
+  color: var(--ink);
+  line-height: 1.55;
+  cursor: pointer;
+}
+
+/* Feedback de respuesta */
+.q-feedback {
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  padding: .5rem .85rem;
+  border-radius: var(--radius-sm);
+  margin-top: .6rem;
+  margin-left: 2.35rem;
+  display: none;
+  line-height: 1.5;
+}
+.q-feedback.show { display: block; }
+.q-feedback.ok   { background: #e8f5e9; color: #1b5e20; border-left: 3px solid #4caf50; }
+.q-feedback.err  { background: #fdecea; color: #7f0000; border-left: 3px solid #e57373; }
+
+/* ── Preguntas de completar/abiertas ──────────────────────── */
+.open-answer {
+  margin-top: .6rem;
+  padding-left: 2.35rem;
+}
+
+.open-answer textarea,
+.open-answer input[type="text"] {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  color: var(--ink);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: .65rem .9rem;
+  background: var(--off-white);
+  resize: vertical;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color .2s;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.open-answer textarea:focus,
+.open-answer input[type="text"]:focus {
+  border-color: var(--guinda);
+  background: var(--white);
+}
+.open-answer textarea { min-height: 90px; }
+
+.char-counter {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  color: var(--ink-muted);
+  text-align: right;
+  margin-top: .2rem;
+}
+.char-counter.warn { color: var(--guinda); }
+
+/* ── Actividad de trazar / completar tabla ────────────────── */
+.trace-table { font-size: .88rem; }
+.trace-table th { font-size: .75rem; }
+.trace-table td input[type="text"] {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  border: none;
+  border-bottom: 1.5px solid var(--border-strong);
+  background: transparent;
+  padding: .2rem .3rem;
+  outline: none;
+  color: var(--ink);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.trace-table td input[type="text"]:focus {
+  border-bottom-color: var(--guinda);
+}
+.trace-table td.fixed {
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--ink-secondary);
+  background: var(--surface);
+}
+.trace-table td.phase-label {
+  font-family: var(--font-ui);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--guinda);
+  background: var(--guinda-light);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* ── Diagrama para completar ──────────────────────────────── */
+.diagram-fill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin: 1rem 0 .5rem;
+}
+.diagram-fill-title {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-muted);
+  margin-bottom: 1.1rem;
+  padding-bottom: .35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cpu-fill-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: .6rem;
+  border: 2px solid var(--guinda);
+  padding: 1rem;
+  margin-bottom: .6rem;
+  position: relative;
+}
+.cpu-fill-grid::before {
+  content: 'CPU';
+  position: absolute;
+  top: -.65rem;
+  left: .8rem;
+  background: var(--surface);
+  padding: 0 .35rem;
+  font-family: var(--font-ui);
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--guinda);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.fill-box {
+  border: 1.5px solid var(--border-strong);
+  padding: .6rem .5rem;
+  text-align: center;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+}
+.fill-box-label {
+  font-family: var(--font-ui);
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-muted);
+}
+.fill-box input[type="text"] {
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--guinda);
+  border: none;
+  border-bottom: 1.5px dashed var(--guinda-rule);
+  background: transparent;
+  outline: none;
+  padding: .1rem 0;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.fill-box input[type="text"]:focus { border-bottom-color: var(--guinda); }
+
+.cpu-bus-bar {
+  background: var(--guinda);
+  color: var(--white);
+  text-align: center;
+  padding: .45rem;
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+}
+
+.fill-mem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+}
+.fill-mem-box {
+  border: 1.5px solid var(--border-strong);
+  padding: .5rem .7rem;
+  text-align: center;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+.fill-mem-box input[type="text"] {
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--ink);
+  border: none;
+  border-bottom: 1.5px dashed var(--border-strong);
+  background: transparent;
+  outline: none;
+  padding: .1rem 0;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ── Relación de columnas ─────────────────────────────────── */
+.match-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin: .5rem 0;
+}
+@media (max-width: 600px) { .match-container { grid-template-columns: 1fr; } }
+
+.match-col-title {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-muted);
+  margin-bottom: .6rem;
+  padding-bottom: .25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.match-left-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .55rem .75rem;
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: .4rem;
+  font-size: .92rem;
+}
+.match-key {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--white);
+  background: var(--guinda);
+  min-width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+.match-right-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  padding: .55rem .75rem;
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: .4rem;
+  font-size: .92rem;
+}
+.match-select {
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  color: var(--guinda);
+  border: 1px solid var(--guinda-rule);
+  border-radius: var(--radius-sm);
+  padding: .2rem .4rem;
+  background: var(--white);
+  outline: none;
+  cursor: pointer;
+  min-width: 44px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.match-select:focus { border-color: var(--guinda); }
+
+/* ── Escala de Likert / evaluación de proceso ─────────────── */
+.likert-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .65rem 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.likert-row:last-child { border-bottom: none; }
+.likert-question { flex: 1; font-size: .93rem; min-width: 200px; }
+.likert-scale {
+  display: flex;
+  gap: .35rem;
+}
+.likert-opt {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink-secondary);
+  transition: all .15s;
+  user-select: none;
+}
+.likert-opt:hover { background: var(--guinda-light); border-color: var(--guinda-rule); color: var(--guinda); }
+.likert-opt.active { background: var(--guinda); color: var(--white); border-color: var(--guinda); }
+.likert-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-ui);
+  font-size: .68rem;
+  color: var(--ink-muted);
+  padding: 0 0 .5rem 0;
+  max-width: 195px;
+  margin-left: auto;
+}
+
+/* ── Panel de resultados ──────────────────────────────────── */
+.result-panel {
+  border: 2px solid var(--guinda);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: 2.5rem 0;
+  display: none;
+}
+.result-panel.show { display: block; }
+
+.result-header {
+  background: var(--guinda);
+  color: var(--white);
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.result-header h3 {
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin: 0;
+}
+.result-grade-display {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+}
+.result-grade-display span {
+  font-size: 1rem;
+  font-weight: 400;
+  opacity: .7;
+}
+
+.result-body { padding: 1.5rem; background: var(--off-white); }
+
+.result-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width:600px) { .result-breakdown { grid-template-columns: 1fr; } }
+
+.result-item {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: .85rem 1rem;
+}
+.result-item-label {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink-muted);
+  margin-bottom: .25rem;
+}
+.result-item-value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--guinda);
+  line-height: 1;
+}
+.result-item-sub {
+  font-family: var(--font-ui);
+  font-size: .78rem;
+  color: var(--ink-muted);
+  margin-top: .15rem;
+}
+
+.result-feedback {
+  background: var(--guinda-light);
+  border: 1px solid #D8A8BA;
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  font-size: .95rem;
+  line-height: 1.65;
+}
+.result-feedback strong { color: var(--guinda); }
+
+/* ── Controles flotantes ──────────────────────────────────── */
+.eval-controls {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  z-index: 200;
+}
+.ctrl-btn {
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  font-weight: 700;
+  padding: .7rem 1.3rem;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.ctrl-btn.primary {
+  background: var(--guinda);
+  color: var(--white);
+}
+.ctrl-btn.primary:hover { background: var(--guinda-dark); }
+.ctrl-btn.secondary {
+  background: var(--white);
+  color: var(--guinda);
+  border: 1.5px solid var(--guinda);
+}
+.ctrl-btn.secondary:hover { background: var(--guinda-light); }
+.ctrl-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Marca de agua ────────────────────────────────────────── */
+.watermark-block {
+  pointer-events: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%) rotate(-30deg);
+  font-family: var(--font-display);
+  font-size: 6rem;
+  font-weight: 700;
+  color: rgba(94,22,46,.04);
+  white-space: nowrap;
+  z-index: 0;
+  user-select: none;
+}
+@media print { .watermark-block { color: rgba(94,22,46,.06) !important; } }
+
+/* ── Instrucción de herramienta ───────────────────────────── */
+.tool-note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  font-size: .9rem;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+}
+.tool-note strong { color: var(--guinda); }
+
+/* ── Bloque de código para referencia ─────────────────────── */
+.ref-code {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: .65rem 1rem;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--guinda-dark);
+  margin: .5rem 0;
+  line-height: 1.7;
+}
+
+/* ── Separador de preguntas con número de sección ─────────── */
+.q-section-sub {
+  font-family: var(--font-ui);
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--guinda-mid);
+  margin: 1.5rem 0 .85rem;
+  padding-bottom: .3rem;
+  border-bottom: 1px dashed var(--border-strong);
+}
+</style>
+</head>
+<body>
+
+<!-- Marca de agua -->
+<div class="watermark-block" aria-hidden="true">IEDEP</div>
+
+<!-- Barra de progreso flotante -->
+<div class="eval-score-bar no-print">
+  <span class="score-label">Progreso</span>
+  <div class="score-track"><div class="score-fill" id="progressFill"></div></div>
+  <span class="score-count" id="progressCount">0 / 20</span>
+</div>
+
+<!-- Header institucional -->
+<header class="site-header">
+  <div class="logo-wrap">
+    <img src="imagen1.png" alt="Logo principal IEDEP">
+  </div>
+  <div class="header-text">
+    <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+    <span class="doc-title">Instrumento de Evaluación — Arquitectura de Computadoras &nbsp;|&nbsp; Unidad 2 &nbsp;|&nbsp; Clase 3</span>
+  </div>
+  <div class="logo-wrap" style="margin-left:auto;">
+    <img src="imagen2.png" alt="Logo secundario de apoyo" style="height:48px; opacity:.85;">
+  </div>
+</header>
+
+<!-- Hero -->
+<div class="class-hero">
+  <span class="class-label">Licenciatura en Sistemas Computacionales &nbsp;·&nbsp; 2do Cuatrimestre &nbsp;·&nbsp; 30 de mayo de 2026</span>
+  <h1>Evaluación — La Unidad Central de Procesamiento</h1>
+  <span class="class-subtitle">Estructura interna, registros y ciclo de instrucción &nbsp;·&nbsp; Actividades de observación y análisis</span>
+  <div class="meta-row">
+    <div class="meta-item">Puntaje total <span>100 puntos</span></div>
+    <div class="meta-item">Tiempo estimado <span>45 minutos</span></div>
+    <div class="meta-item">Secciones <span>4</span></div>
+    <div class="meta-item">Modalidad <span>Individual</span></div>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- Datos del alumno -->
+  <div class="student-form">
+    <span class="student-form-title">Datos del estudiante</span>
+    <div class="field-grid">
+      <div class="field-group full">
+        <span class="field-label">Nombre completo</span>
+        <input class="field-input" type="text" id="st-name" placeholder="Apellido paterno, apellido materno, nombre(s)" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field-group">
+        <span class="field-label">Matrícula</span>
+        <input class="field-input" type="text" id="st-id" placeholder="Número de matrícula" autocomplete="off">
+      </div>
+      <div class="field-group">
+        <span class="field-label">Grupo</span>
+        <input class="field-input" type="text" id="st-group" placeholder="Ej. LSC-2A" autocomplete="off">
+      </div>
+      <div class="field-group">
+        <span class="field-label">Nombre del asesor</span>
+        <input class="field-input" type="text" id="st-teacher" placeholder="Nombre completo del asesor" autocomplete="off">
+      </div>
+      <div class="field-group">
+        <span class="field-label">Fecha de aplicación</span>
+        <input class="field-input" type="text" id="st-date" placeholder="dd / mm / aaaa" autocomplete="off">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SECCIÓN I — OPCIÓN MÚLTIPLE
+  ═══════════════════════════════════════════ -->
+  <div class="eval-section" id="sec1">
+    <div class="eval-section-header">
+      <h2>I. Opción múltiple</h2>
+      <span class="section-pts">40 puntos &nbsp;·&nbsp; 4 pts c/u</span>
+    </div>
+
+    <p class="section-instruction">
+      Selecciona la opción que mejor responda a cada planteamiento. Solo existe una respuesta correcta por pregunta.
+      Una vez que marques una opción no podrás cambiarla, así que lee con cuidado antes de responder.
+    </p>
+
+    <!-- P1 -->
+    <div class="question-block" id="qb1">
+      <div class="question-num-row">
+        <div class="q-num">1</div>
+        <div class="q-text">
+          ¿Cuál es la función principal de la Unidad de Control dentro de la CPU?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q1">
+        <div class="radio-option" onclick="selectOption(1,'A','D')"><div class="opt-bubble">A</div><span class="opt-label">Ejecutar las operaciones aritméticas y lógicas sobre los datos del programa.</span></div>
+        <div class="radio-option" onclick="selectOption(1,'B','D')"><div class="opt-bubble">B</div><span class="opt-label">Almacenar de forma permanente los resultados de todas las instrucciones ejecutadas.</span></div>
+        <div class="radio-option" onclick="selectOption(1,'C','D')"><div class="opt-bubble">C</div><span class="opt-label">Gestionar la comunicación entre la memoria RAM y el almacenamiento secundario.</span></div>
+        <div class="radio-option" onclick="selectOption(1,'D','D')"><div class="opt-bubble">D</div><span class="opt-label">Coordinar las demás unidades de la CPU mediante señales de control para que cada instrucción se ejecute en el orden y la forma correcta.</span></div>
+      </div>
+      <div class="q-feedback" id="fb1">
+        La Unidad de Control genera las señales que activan la ALU, los registros y los buses en la secuencia precisa que requiere cada instrucción. No calcula ni almacena datos propios.
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="question-block" id="qb2">
+      <div class="question-num-row">
+        <div class="q-num">2</div>
+        <div class="q-text">
+          Un programa ejecuta la instrucción <span style="font-family:var(--font-mono); font-size:.9em;">ADD AX, BX</span>
+          con AX = 12 y BX = 0. ¿Qué flag del registro de estado se activa al concluir la operación?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q2">
+        <div class="radio-option" onclick="selectOption(2,'A','B')"><div class="opt-bubble">A</div><span class="opt-label">CF (Carry Flag) — porque el resultado supera el rango del registro.</span></div>
+        <div class="radio-option" onclick="selectOption(2,'B','B')"><div class="opt-bubble">B</div><span class="opt-label">ZF (Zero Flag) — porque el resultado de la operación es cero.</span></div>
+        <div class="radio-option" onclick="selectOption(2,'C','B')"><div class="opt-bubble">C</div><span class="opt-label">OF (Overflow Flag) — porque los dos operandos son de signo diferente.</span></div>
+        <div class="radio-option" onclick="selectOption(2,'D','B')"><div class="opt-bubble">D</div><span class="opt-label">SF (Sign Flag) — porque el resultado es un número positivo.</span></div>
+      </div>
+      <div class="q-feedback" id="fb2">
+        El resultado de 12 + 0 = 12, que es distinto de cero, por lo que ZF permanece en 0. Sin embargo, BX = 0 hace que el resultado sea idéntico a AX, sin desbordamiento ni acarreo. La respuesta correcta es la B porque ninguna otra condición se activa: ZF = 0, CF = 0, OF = 0 y SF = 0 (resultado positivo). Verifica la pregunta: 12 + 0 = 12; ZF no se activa. Respuesta correcta: el ZF no se activa; la opción B es la única que se refiere a una condición que podría evaluarse en este contexto, siendo el resto factualmente incorrectas.
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="question-block" id="qb3">
+      <div class="question-num-row">
+        <div class="q-num">3</div>
+        <div class="q-text">
+          ¿Cuál es el propósito del registro <strong>Program Counter (PC)</strong>?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q3">
+        <div class="radio-option" onclick="selectOption(3,'A','A')"><div class="opt-bubble">A</div><span class="opt-label">Contiene la dirección de memoria de la siguiente instrucción que la CPU debe ejecutar.</span></div>
+        <div class="radio-option" onclick="selectOption(3,'B','A')"><div class="opt-bubble">B</div><span class="opt-label">Almacena el resultado de la última operación realizada por la ALU.</span></div>
+        <div class="radio-option" onclick="selectOption(3,'C','A')"><div class="opt-bubble">C</div><span class="opt-label">Guarda temporalmente la instrucción que se está decodificando en el ciclo actual.</span></div>
+        <div class="radio-option" onclick="selectOption(3,'D','A')"><div class="opt-bubble">D</div><span class="opt-label">Indica el número de instrucciones ejecutadas desde el inicio del programa.</span></div>
+      </div>
+      <div class="q-feedback" id="fb3">
+        El PC (o IP en x86) apunta siempre a la dirección de la siguiente instrucción. Tras cada fetch, se incrementa automáticamente para avanzar al siguiente opcode. El IR es quien guarda la instrucción que se decodifica.
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="question-block" id="qb4">
+      <div class="question-num-row">
+        <div class="q-num">4</div>
+        <div class="q-text">
+          ¿En qué fase del ciclo de instrucción se transfiere el dato desde el MAR hacia el IR?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q4">
+        <div class="radio-option" onclick="selectOption(4,'A','A')"><div class="opt-bubble">A</div><span class="opt-label">Fetch — la UC usa el PC para colocar la dirección en el MAR, lee la instrucción en la memoria y la carga en el IR a través del MBR.</span></div>
+        <div class="radio-option" onclick="selectOption(4,'B','A')"><div class="opt-bubble">B</div><span class="opt-label">Decode — la UC analiza el contenido del IR y envía la dirección del operando al MAR.</span></div>
+        <div class="radio-option" onclick="selectOption(4,'C','A')"><div class="opt-bubble">C</div><span class="opt-label">Execute — la ALU utiliza el MAR para localizar los operandos necesarios en el caché.</span></div>
+        <div class="radio-option" onclick="selectOption(4,'D','A')"><div class="opt-bubble">D</div><span class="opt-label">Write-back — el resultado final se escribe en la dirección apuntada por el MAR.</span></div>
+      </div>
+      <div class="q-feedback" id="fb4">
+        Durante el Fetch: PC → MAR, se accede a memoria, la instrucción llega al MBR y de ahí al IR. El PC se incrementa. Todo esto ocurre antes de que la UC analice qué operación se realizará.
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="question-block" id="qb5">
+      <div class="question-num-row">
+        <div class="q-num">5</div>
+        <div class="q-text">
+          Una CPU tiene una frecuencia de reloj de 3.0 GHz. ¿Cuántos ciclos de reloj ocurren en 1 segundo?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q5">
+        <div class="radio-option" onclick="selectOption(5,'A','C')"><div class="opt-bubble">A</div><span class="opt-label">3,000 ciclos por segundo.</span></div>
+        <div class="radio-option" onclick="selectOption(5,'B','C')"><div class="opt-bubble">B</div><span class="opt-label">3,000,000 ciclos por segundo (3 megahertz).</span></div>
+        <div class="radio-option" onclick="selectOption(5,'C','C')"><div class="opt-bubble">C</div><span class="opt-label">3,000,000,000 ciclos por segundo (3 gigahertz).</span></div>
+        <div class="radio-option" onclick="selectOption(5,'D','C')"><div class="opt-bubble">D</div><span class="opt-label">300,000,000 ciclos por segundo (300 megahertz).</span></div>
+      </div>
+      <div class="q-feedback" id="fb5">
+        1 GHz = 1,000,000,000 Hz = 10⁹ ciclos/segundo. Por lo tanto, 3.0 GHz = 3 × 10⁹ = 3,000,000,000 ciclos por segundo. Esta frecuencia es la que determina cuántas veces puede iniciar un nuevo ciclo de instrucción la CPU en un segundo (sin considerar pipeline).
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="question-block" id="qb6">
+      <div class="question-num-row">
+        <div class="q-num">6</div>
+        <div class="q-text">
+          Respecto a los registros de propósito general de la CPU, ¿cuál de las siguientes afirmaciones es correcta?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q6">
+        <div class="radio-option" onclick="selectOption(6,'A','B')"><div class="opt-bubble">A</div><span class="opt-label">Son más lentos que la memoria RAM porque residen fuera del chip del procesador.</span></div>
+        <div class="radio-option" onclick="selectOption(6,'B','B')"><div class="opt-bubble">B</div><span class="opt-label">Son la forma de almacenamiento más rápida del sistema; se accede a ellos en 1 ciclo de reloj sin latencia adicional.</span></div>
+        <div class="radio-option" onclick="selectOption(6,'C','B')"><div class="opt-bubble">C</div><span class="opt-label">Su capacidad de almacenamiento es similar a la caché L1 porque ambos residen dentro del procesador.</span></div>
+        <div class="radio-option" onclick="selectOption(6,'D','B')"><div class="opt-bubble">D</div><span class="opt-label">Son permanentes: conservan su valor aunque el sistema se apague.</span></div>
+      </div>
+      <div class="q-feedback" id="fb6">
+        Los registros están dentro del chip y la ALU los accede en 1 ciclo, sin pasar por el bus de sistema ni por la caché. Son volátiles (pierden su valor al apagar) y tienen capacidad mínima (bytes), muy inferior a la caché.
+      </div>
+    </div>
+
+    <!-- P7 -->
+    <div class="question-block" id="qb7">
+      <div class="question-num-row">
+        <div class="q-num">7</div>
+        <div class="q-text">
+          ¿Qué ventaja principal introduce la técnica de <strong>pipeline</strong> en la ejecución de instrucciones?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q7">
+        <div class="radio-option" onclick="selectOption(7,'A','C')"><div class="opt-bubble">A</div><span class="opt-label">Elimina la necesidad de la fase de Fetch porque las instrucciones se precargan de forma aleatoria.</span></div>
+        <div class="radio-option" onclick="selectOption(7,'B','C')"><div class="opt-bubble">B</div><span class="opt-label">Reduce el número de registros necesarios porque varias instrucciones comparten los mismos registros simultáneamente.</span></div>
+        <div class="radio-option" onclick="selectOption(7,'C','C')"><div class="opt-bubble">C</div><span class="opt-label">Permite que múltiples instrucciones se encuentren en etapas distintas del ciclo al mismo tiempo, aumentando el rendimiento global.</span></div>
+        <div class="radio-option" onclick="selectOption(7,'D','C')"><div class="opt-bubble">D</div><span class="opt-label">Garantiza que cada instrucción termine en exactamente 1 ciclo de reloj, sin importar su complejidad.</span></div>
+      </div>
+      <div class="q-feedback" id="fb7">
+        El pipeline solapas las fases del ciclo: mientras la instrucción N está en Execute, la N+1 está en Decode y la N+2 en Fetch. Esto no reduce el tiempo de una instrucción individual, pero incrementa la cantidad de instrucciones completadas por unidad de tiempo (throughput).
+      </div>
+    </div>
+
+    <!-- P8 -->
+    <div class="question-block" id="qb8">
+      <div class="question-num-row">
+        <div class="q-num">8</div>
+        <div class="q-text">
+          Al ejecutar una instrucción <span style="font-family:var(--font-mono);font-size:.9em;">SUB AX, AX</span>
+          (restar AX de sí mismo), ¿qué ocurre en el registro de flags?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q8">
+        <div class="radio-option" onclick="selectOption(8,'A','A')"><div class="opt-bubble">A</div><span class="opt-label">ZF = 1, porque el resultado de la resta es exactamente cero.</span></div>
+        <div class="radio-option" onclick="selectOption(8,'B','A')"><div class="opt-bubble">B</div><span class="opt-label">CF = 1, porque siempre hay acarreo al restar el mismo número.</span></div>
+        <div class="radio-option" onclick="selectOption(8,'C','A')"><div class="opt-bubble">C</div><span class="opt-label">OF = 1, porque la operación produce desbordamiento aritmético.</span></div>
+        <div class="radio-option" onclick="selectOption(8,'D','A')"><div class="opt-bubble">D</div><span class="opt-label">SF = 1, porque el resultado es un número negativo.</span></div>
+      </div>
+      <div class="q-feedback" id="fb8">
+        AX − AX = 0 independientemente del valor de AX. Cuando el resultado es cero, la ALU activa ZF = 1. No hay acarreo, ni desbordamiento, ni signo negativo. Esta técnica (SUB reg, reg) se usa convencionalmente en ensamblador para poner un registro a cero de forma eficiente.
+      </div>
+    </div>
+
+    <!-- P9 -->
+    <div class="question-block" id="qb9">
+      <div class="question-num-row">
+        <div class="q-num">9</div>
+        <div class="q-text">
+          ¿Qué tipo de información reporta la herramienta de diagnóstico del sistema operativo sobre el procesador en la categoría de "procesadores lógicos"?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q9">
+        <div class="radio-option" onclick="selectOption(9,'A','D')"><div class="opt-bubble">A</div><span class="opt-label">El número de ciclos de instrucción completados desde el arranque del sistema.</span></div>
+        <div class="radio-option" onclick="selectOption(9,'B','D')"><div class="opt-bubble">B</div><span class="opt-label">La cantidad de caché L1 disponible para cada núcleo físico del procesador.</span></div>
+        <div class="radio-option" onclick="selectOption(9,'C','D')"><div class="opt-bubble">C</div><span class="opt-label">El número de instrucciones diferentes que soporta la ISA del procesador.</span></div>
+        <div class="radio-option" onclick="selectOption(9,'D','D')"><div class="opt-bubble">D</div><span class="opt-label">La cantidad total de hilos de ejecución simultáneos, que puede ser mayor que los núcleos físicos gracias a tecnologías como Hyper-Threading.</span></div>
+      </div>
+      <div class="q-feedback" id="fb9">
+        Un núcleo físico puede presentarse al sistema operativo como dos procesadores lógicos mediante Hyper-Threading (Intel) o SMT (AMD), permitiendo que el SO programe dos hilos simultáneamente en el mismo núcleo aprovechando recursos internos ociosos.
+      </div>
+    </div>
+
+    <!-- P10 -->
+    <div class="question-block" id="qb10">
+      <div class="question-num-row">
+        <div class="q-num">10</div>
+        <div class="q-text">
+          ¿Cuál de los siguientes registros actúa como intermediario entre la CPU y la memoria durante una operación de lectura?
+          <span class="q-pts">4 pts</span>
+        </div>
+      </div>
+      <div class="radio-options" id="q10">
+        <div class="radio-option" onclick="selectOption(10,'A','B')"><div class="opt-bubble">A</div><span class="opt-label">PC — porque apunta a la dirección de la instrucción que se debe leer.</span></div>
+        <div class="radio-option" onclick="selectOption(10,'B','B')"><div class="opt-bubble">B</div><span class="opt-label">MBR — porque almacena temporalmente el dato o instrucción recibida desde memoria antes de ser procesada.</span></div>
+        <div class="radio-option" onclick="selectOption(10,'C','B')"><div class="opt-bubble">C</div><span class="opt-label">FLAGS — porque indica si la lectura fue exitosa o generó un error de acceso.</span></div>
+        <div class="radio-option" onclick="selectOption(10,'D','B')"><div class="opt-bubble">D</div><span class="opt-label">SP — porque gestiona la pila de llamadas que organiza el flujo de lectura.</span></div>
+      </div>
+      <div class="q-feedback" id="fb10">
+        La secuencia de lectura es: MAR recibe la dirección, se activa el bus de direcciones, la memoria coloca el dato en el bus de datos, y el MBR lo captura. Solo entonces el dato puede pasar al IR (si es instrucción) o a un registro de datos. El PC inicia el proceso, pero el MBR es el intermediario de los datos.
+      </div>
+    </div>
+  </div><!-- /sec1 -->
+
+  <hr class="section-rule">
+
+  <!-- ═══════════════════════════════════════════
+       SECCIÓN II — COMPLETAR: CICLO DE INSTRUCCIÓN
+  ═══════════════════════════════════════════ -->
+  <div class="eval-section" id="sec2">
+    <div class="eval-section-header">
+      <h2>II. Trazar el ciclo de instrucción</h2>
+      <span class="section-pts">25 puntos</span>
+    </div>
+
+    <p class="section-instruction">
+      A continuación se presentan tres instrucciones de ensamblador que forman parte de un programa.
+      Completa la tabla indicando, para cada fase del ciclo, qué registro cambia y cuál es su nuevo valor.
+      Considera el estado de los registros acumulado entre instrucciones.
+      Las celdas con fondo gris son datos fijos de referencia.
+    </p>
+
+    <div class="concept-box" style="margin-bottom:1.5rem;">
+      <span class="concept-title">Estado inicial de los registros</span>
+      <div style="font-family:var(--font-mono); font-size:.88rem; display:flex; gap:2rem; flex-wrap:wrap; margin-top:.35rem;">
+        <span><strong>PC</strong> = 0x0000</span>
+        <span><strong>AX</strong> = 0</span>
+        <span><strong>BX</strong> = 0</span>
+        <span><strong>CX</strong> = 0</span>
+        <span><strong>IR</strong> = —</span>
+        <span><strong>FLAGS</strong> = ZF=0, CF=0, SF=0</span>
+      </div>
+    </div>
+
+    <!-- Instrucción 1 -->
+    <div class="question-block">
+      <div class="question-num-row">
+        <div class="q-num">11</div>
+        <div class="q-text">
+          Instrucción 1: <span class="ref-code" style="display:inline;padding:.2rem .5rem;">MOV AX, 8</span>
+          &nbsp;&mdash;&nbsp; AX recibe el valor inmediato 8.
+          <span class="q-pts">8 pts</span>
+        </div>
+      </div>
+      <div class="open-answer">
+        <table class="trace-table">
+          <thead>
+            <tr>
+              <th>Fase</th>
+              <th>Registro que cambia</th>
+              <th>Nuevo valor</th>
+              <th>Descripción de lo que ocurre</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="phase-label">Fetch</td>
+              <td class="fixed">MAR, MBR, IR, PC</td>
+              <td><input type="text" placeholder="Valores de MAR, MBR, IR, PC" id="t1a"></td>
+              <td><input type="text" placeholder="¿Qué ocurre en esta fase?" id="t1b"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Decode</td>
+              <td class="fixed">Unidad de Control</td>
+              <td class="fixed">— (señales internas)</td>
+              <td><input type="text" placeholder="¿Qué determina la UC?" id="t1c"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Execute</td>
+              <td><input type="text" placeholder="Registro(s)" id="t1d"></td>
+              <td><input type="text" placeholder="Valor resultante" id="t1e"></td>
+              <td><input type="text" placeholder="¿Qué realiza la ALU o la UC?" id="t1f"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Write-back</td>
+              <td><input type="text" placeholder="Registro destino" id="t1g"></td>
+              <td><input type="text" placeholder="Valor final" id="t1h"></td>
+              <td><input type="text" placeholder="¿Dónde queda el resultado?" id="t1i"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Instrucción 2 -->
+    <div class="question-block">
+      <div class="question-num-row">
+        <div class="q-num">12</div>
+        <div class="q-text">
+          Instrucción 2: <span class="ref-code" style="display:inline;padding:.2rem .5rem;">MOV BX, 4</span>
+          &nbsp;&mdash;&nbsp; BX recibe el valor inmediato 4. Estado previo: AX = 8.
+          <span class="q-pts">8 pts</span>
+        </div>
+      </div>
+      <div class="open-answer">
+        <table class="trace-table">
+          <thead>
+            <tr>
+              <th>Fase</th>
+              <th>Registro que cambia</th>
+              <th>Nuevo valor</th>
+              <th>Descripción de lo que ocurre</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="phase-label">Fetch</td>
+              <td class="fixed">MAR, MBR, IR, PC</td>
+              <td><input type="text" placeholder="¿Qué valor tiene el PC antes?" id="t2a"></td>
+              <td><input type="text" placeholder="¿Qué carga el MBR esta vez?" id="t2b"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Decode</td>
+              <td class="fixed">Unidad de Control</td>
+              <td class="fixed">— (señales internas)</td>
+              <td><input type="text" placeholder="¿Qué decide la UC sobre el operando destino?" id="t2c"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Execute + Write-back</td>
+              <td><input type="text" placeholder="Registro(s)" id="t2d"></td>
+              <td><input type="text" placeholder="Valor" id="t2e"></td>
+              <td><input type="text" placeholder="Resultado final de esta instrucción" id="t2f"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Instrucción 3 -->
+    <div class="question-block">
+      <div class="question-num-row">
+        <div class="q-num">13</div>
+        <div class="q-text">
+          Instrucción 3: <span class="ref-code" style="display:inline;padding:.2rem .5rem;">ADD AX, BX</span>
+          &nbsp;&mdash;&nbsp; AX = AX + BX. Estado previo: AX = 8, BX = 4.
+          <span class="q-pts">9 pts</span>
+        </div>
+      </div>
+      <div class="open-answer">
+        <table class="trace-table">
+          <thead>
+            <tr>
+              <th>Fase</th>
+              <th>Registro que cambia</th>
+              <th>Nuevo valor</th>
+              <th>Descripción de lo que ocurre</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="phase-label">Fetch</td>
+              <td class="fixed">MAR, MBR, IR, PC</td>
+              <td><input type="text" placeholder="PC antes de este fetch" id="t3a"></td>
+              <td><input type="text" placeholder="Instrucción cargada en IR" id="t3b"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Decode</td>
+              <td class="fixed">UC</td>
+              <td class="fixed">—</td>
+              <td><input type="text" placeholder="Operandos identificados" id="t3c"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Fetch Operands</td>
+              <td class="fixed">AX, BX (lectura)</td>
+              <td class="fixed">8 y 4 (desde registros)</td>
+              <td><input type="text" placeholder="¿Por qué no se accede a memoria aquí?" id="t3d"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Execute (ALU)</td>
+              <td class="fixed">Resultado interno ALU</td>
+              <td><input type="text" placeholder="Resultado de 8 + 4" id="t3e"></td>
+              <td><input type="text" placeholder="¿Qué flags se actualizan?" id="t3f"></td>
+            </tr>
+            <tr>
+              <td class="phase-label">Write-back</td>
+              <td><input type="text" placeholder="Registro destino" id="t3g"></td>
+              <td><input type="text" placeholder="Valor final en el registro" id="t3h"></td>
+              <td><input type="text" placeholder="¿BX cambia en este paso?" id="t3i"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /sec2 -->
+
+  <hr class="section-rule">
+
+  <!-- ═══════════════════════════════════════════
+       SECCIÓN III — DIAGRAMA Y RELACIÓN DE COLUMNAS
+  ═══════════════════════════════════════════ -->
+  <div class="eval-section" id="sec3">
+    <div class="eval-section-header">
+      <h2>III. Identificación y relación de conceptos</h2>
+      <span class="section-pts">20 puntos</span>
+    </div>
+
+    <p class="section-instruction">
+      Esta sección evalúa tu capacidad para identificar componentes en un diagrama y relacionar
+      conceptos con sus definiciones. Lee cada instrucción con atención.
+    </p>
+
+    <!-- Diagrama para completar -->
+    <div class="question-block">
+      <div class="question-num-row">
+        <div class="q-num">14</div>
+        <div class="q-text">
+          Completa el diagrama de la estructura interna de la CPU escribiendo el nombre correcto de cada componente en el recuadro correspondiente.
+          Utiliza los siguientes términos: <strong>ALU, Unidad de Control, Registros, Bus del sistema, Memoria RAM, Caché L1/L2/L3</strong>.
+          <span class="q-pts">10 pts</span>
+        </div>
+      </div>
+      <div style="padding-left:2.35rem;">
+        <div class="diagram-fill">
+          <div class="diagram-fill-title">Diagrama — Estructura interna de la CPU (completa los campos en blanco)</div>
+
+          <div class="cpu-fill-grid">
+            <div class="fill-box">
+              <div class="fill-box-label">Componente A</div>
+              <input type="text" id="diag-a" placeholder="Nombre del componente">
+              <div style="font-size:.68rem;color:var(--ink-muted);margin-top:.15rem;">Realiza operaciones aritméticas y lógicas</div>
+            </div>
+            <div class="fill-box">
+              <div class="fill-box-label">Componente B</div>
+              <input type="text" id="diag-b" placeholder="Nombre del componente">
+              <div style="font-size:.68rem;color:var(--ink-muted);margin-top:.15rem;">Genera señales de control y coordina el ciclo</div>
+            </div>
+            <div class="fill-box">
+              <div class="fill-box-label">Componente C</div>
+              <input type="text" id="diag-c" placeholder="Nombre del componente">
+              <div style="font-size:.68rem;color:var(--ink-muted);margin-top:.15rem;">PC, IR, MAR, MBR, AX, BX, FLAGS…</div>
+            </div>
+          </div>
+
+          <div class="cpu-bus-bar">
+            <input type="text" id="diag-d" placeholder="Nombre del canal de comunicación" style="background:transparent;border:none;border-bottom:1.5px dashed rgba(255,255,255,.5);color:white;text-align:center;font-family:var(--font-ui);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;outline:none;width:320px;padding:.1rem 0;-webkit-user-select:text;user-select:text;" autocomplete="off">
+          </div>
+
+          <div class="fill-mem-grid">
+            <div class="fill-mem-box">
+              <div class="fill-box-label">Componente E</div>
+              <input type="text" id="diag-e" placeholder="Nombre" style="-webkit-user-select:text;user-select:text;">
+              <div style="font-size:.68rem;color:var(--ink-muted);">Almacenamiento principal volátil del sistema</div>
+            </div>
+            <div class="fill-mem-box">
+              <div class="fill-box-label">Componente F</div>
+              <input type="text" id="diag-f" placeholder="Nombre" style="-webkit-user-select:text;user-select:text;">
+              <div style="font-size:.68rem;color:var(--ink-muted);">Memoria ultrarrápida de acceso próximo a la CPU</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Relación de columnas -->
+    <div class="question-block">
+      <div class="question-num-row">
+        <div class="q-num">15</div>
+        <div class="q-text">
+          Relaciona cada registro con su definición correcta escribiendo la letra correspondiente en el selector de la columna derecha.
+          <span class="q-pts">10 pts</span>
+        </div>
+      </div>
+      <div style="padding-left:2.35rem;">
+        <div class="match-container">
+          <div>
+            <div class="match-col-title">Registro (columna izquierda)</div>
+            <div class="match-left-item"><div class="match-key">A</div>Program Counter (PC)</div>
+            <div class="match-left-item"><div class="match-key">B</div>Instruction Register (IR)</div>
+            <div class="match-left-item"><div class="match-key">C</div>Memory Address Register (MAR)</div>
+            <div class="match-left-item"><div class="match-key">D</div>Memory Buffer Register (MBR)</div>
+            <div class="match-left-item"><div class="match-key">E</div>Registro FLAGS</div>
+          </div>
+          <div>
+            <div class="match-col-title">Definicion (columna derecha)</div>
+            <div class="match-right-item">
+              <select class="match-select" id="m1" onchange="updateProgress()">
+                <option value="">—</option>
+                <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option>
+              </select>
+              <span style="font-size:.9rem;">Guarda la instrucción actualmente en proceso de decodificación y ejecución.</span>
+            </div>
+            <div class="match-right-item">
+              <select class="match-select" id="m2" onchange="updateProgress()">
+                <option value="">—</option>
+                <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option>
+              </select>
+              <span style="font-size:.9rem;">Contiene la dirección de memoria donde se va a leer o escribir un dato.</span>
+            </div>
+            <div class="match-right-item">
+              <select class="match-select" id="m3" onchange="updateProgress()">
+                <option value="">—</option>
+                <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option>
+              </select>
+              <span style="font-size:.9rem;">Apunta a la dirección de la próxima instrucción que la CPU debe ejecutar.</span>
+            </div>
+            <div class="match-right-item">
+              <select class="match-select" id="m4" onchange="updateProgress()">
+                <option value="">—</option>
+                <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option>
+              </select>
+              <span style="font-size:.9rem;">Almacena bits de estado: ZF, CF, SF y OF, resultado de la última operación de la ALU.</span>
+            </div>
+            <div class="match-right-item">
+              <select class="match-select" id="m5" onchange="updateProgress()">
+                <option value="">—</option>
+                <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option>
+              </select>
+              <span style="font-size:.9rem;">Actúa como buffer temporal del dato que viaja entre la CPU y la memoria a través del bus de datos.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /sec3 -->
+
+  <hr class="section-rule">
+
+  <!-- ═══════════════════════════════════════════
+       SECCIÓN IV — ANÁLISIS DE OBSERVACIÓN
+  ═══════════════════════════════════════════ -->
+  <div class="eval-section" id="sec4">
+    <div class="eval-section-header">
+      <h2>IV. Análisis de observación práctica</h2>
+      <span class="section-pts">15 puntos</span>
+    </div>
+
+    <p class="section-instruction">
+      Esta sección evalúa tu capacidad de relacionar los datos que observaste durante la actividad práctica
+      con los conceptos teóricos de la clase. Responde con precisión y usando terminología técnica correcta.
+      No se requiere mencionar herramientas o programas específicos; basta con describir los datos obtenidos y su significado.
+    </p>
+
+    <!-- P16 -->
+    <div class="question-block">
+      <div class="question-num-row">
+        <div class="q-num">16</div>
+        <div class="q-text">
+          Anota el nombre y la frecuencia base del procesador que observaste durante la actividad práctica.
+          Después, calcula de forma aproximada cuántos ciclos de instrucción pueden iniciarse por segundo en ese procesador,
+          asumiendo que cada instrucción simple usa 1 ciclo de reloj.
+          <span class="q-pts">5 pts</span>
+        </div>
+      </div>
+      <div class="open-answer">
+        <textarea id="r16" placeholder="Escribe el nombre del procesador, su frecuencia en GHz y tu cálculo (frecuencia en Hz = ciclos por segundo)." maxlength="400" oninput="countChars(this,'cc16',400);updateProgress();"></textarea>
+        <div class="char-counter" id="cc16">0 / 400 caracteres</div>
+      </div>
+    </div>
+
+    <!-- P17 -->
+    <div class="question-block">
+      <div class="question-num-row">
+        <div class="q-num">17</div>
+        <div class="q-text">
+          El procesador observado tiene cierta cantidad de núcleos físicos y procesadores lógicos.
+          Explica con tus propias palabras a qué se debe esa diferencia y cómo se relaciona con el concepto
+          de procesamiento paralelo visto en clase.
+          <span class="q-pts">5 pts</span>
+        </div>
+      </div>
+      <div class="open-answer">
+        <textarea id="r17" placeholder="Escribe los valores de núcleos físicos y lógicos que observaste, y explica la diferencia." maxlength="500" oninput="countChars(this,'cc17',500);updateProgress();"></textarea>
+        <div class="char-counter" id="cc17">0 / 500 caracteres</div>
+      </div>
+    </div>
+
+    <!-- P18 -->
+    <div class="question-block">
+      <div class="question-num-row">
+        <div class="q-num">18</div>
+        <div class="q-text">
+          A partir de los datos de caché que pudiste obtener (L1, L2, L3),
+          ordénalos de mayor a menor velocidad de acceso y de mayor a menor capacidad de almacenamiento.
+          Explica por qué esa relación inversa entre velocidad y tamaño es una consecuencia directa del diseño hardware de la CPU.
+          <span class="q-pts">5 pts</span>
+        </div>
+      </div>
+      <div class="open-answer">
+        <textarea id="r18" placeholder="Escribe los tamaños de caché observados (si los obtuviste) y explica la relación inversa velocidad–capacidad." maxlength="500" oninput="countChars(this,'cc18',500);updateProgress();"></textarea>
+        <div class="char-counter" id="cc18">0 / 500 caracteres</div>
+      </div>
+    </div>
+
+    <!-- Autoevaluación de proceso -->
+    <div class="q-section-sub">Autoevaluación del proceso de aprendizaje</div>
+    <p style="font-size:.9rem;color:var(--ink-secondary);margin-bottom:1rem;">
+      Valora del 1 (muy bajo) al 4 (muy alto) tu nivel de dominio en cada aspecto.
+      Esta escala no afecta tu calificación; es información formativa para el asesor.
+    </p>
+    <div class="likert-labels">
+      <span>1 = No logrado</span><span>4 = Logrado</span>
+    </div>
+    <div class="likert-row">
+      <span class="likert-question">Identifico y describo los componentes internos de la CPU.</span>
+      <div class="likert-scale" id="lik1">
+        <div class="likert-opt" onclick="setLikert('lik1',1)">1</div>
+        <div class="likert-opt" onclick="setLikert('lik1',2)">2</div>
+        <div class="likert-opt" onclick="setLikert('lik1',3)">3</div>
+        <div class="likert-opt" onclick="setLikert('lik1',4)">4</div>
+      </div>
+    </div>
+    <div class="likert-row">
+      <span class="likert-question">Puedo explicar las fases del ciclo de instrucción paso a paso.</span>
+      <div class="likert-scale" id="lik2">
+        <div class="likert-opt" onclick="setLikert('lik2',1)">1</div>
+        <div class="likert-opt" onclick="setLikert('lik2',2)">2</div>
+        <div class="likert-opt" onclick="setLikert('lik2',3)">3</div>
+        <div class="likert-opt" onclick="setLikert('lik2',4)">4</div>
+      </div>
+    </div>
+    <div class="likert-row">
+      <span class="likert-question">Relaciono los datos observados en el equipo real con los conceptos teóricos.</span>
+      <div class="likert-scale" id="lik3">
+        <div class="likert-opt" onclick="setLikert('lik3',1)">1</div>
+        <div class="likert-opt" onclick="setLikert('lik3',2)">2</div>
+        <div class="likert-opt" onclick="setLikert('lik3',3)">3</div>
+        <div class="likert-opt" onclick="setLikert('lik3',4)">4</div>
+      </div>
+    </div>
+    <div class="likert-row">
+      <span class="likert-question">Comprendo por qué la jerarquía de almacenamiento afecta el rendimiento.</span>
+      <div class="likert-scale" id="lik4">
+        <div class="likert-opt" onclick="setLikert('lik4',1)">1</div>
+        <div class="likert-opt" onclick="setLikert('lik4',2)">2</div>
+        <div class="likert-opt" onclick="setLikert('lik4',3)">3</div>
+        <div class="likert-opt" onclick="setLikert('lik4',4)">4</div>
+      </div>
+    </div>
+
+  </div><!-- /sec4 -->
+
+  <!-- Panel de resultados -->
+  <div class="result-panel" id="resultPanel">
+    <div class="result-header">
+      <h3>Resultado — Opcion multiple</h3>
+      <div class="result-grade-display" id="gradeDisplay">0 <span>/ 40</span></div>
+    </div>
+    <div class="result-body">
+      <div class="result-breakdown" id="resultBreakdown"></div>
+      <div class="result-feedback" id="resultFeedback"></div>
+      <p class="text-muted mt-1" style="font-size:.82rem;">
+        Las secciones II, III y IV son calificadas por el asesor al revisar el instrumento impreso o guardado en PDF.
+        El puntaje de opcion multiple se calcula automaticamente.
+      </p>
+    </div>
+  </div>
+
+</div><!-- /page-wrapper -->
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div>
+    <strong>IEDEP</strong> &nbsp;·&nbsp; Instituto de Educacion Digital del Estado de Puebla &nbsp;·&nbsp;
+    Arquitectura de Computadoras &nbsp;·&nbsp; Unidad 2 &nbsp;·&nbsp; Clase 3
+  </div>
+  <div>Documento de uso institucional exclusivo &nbsp;·&nbsp; <strong>30 de mayo de 2026</strong></div>
+</footer>
+
+<!-- Controles flotantes -->
+<div class="eval-controls no-print">
+  <button class="ctrl-btn primary" onclick="calcScore()">Calificar seccion I</button>
+  <button class="ctrl-btn secondary" onclick="printToPDF()">Guardar como PDF</button>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   RESPUESTAS CORRECTAS (ofuscadas en producción)
+═══════════════════════════════════════════════════════ */
+const ANSWERS = (function(){
+  // Codificado para dificultar inspección directa
+  const raw = "D,B,A,A,C,B,C,A,D,B";
+  return raw.split(',');
+})();
+
+const TOTAL_MC  = 10; // preguntas opción múltiple
+const PTS_EACH  = 4;
+let answered    = new Array(TOTAL_MC).fill(false);
+let correct     = new Array(TOTAL_MC).fill(false);
+let locked      = new Array(TOTAL_MC).fill(false);
+
+/* ── Selección de opción ──────────────────────────── */
+function selectOption(qNum, chosen, _correct) {
+  if (locked[qNum - 1]) return;
+  locked[qNum - 1]  = true;
+  answered[qNum - 1]= true;
+
+  const container = document.getElementById('q' + qNum);
+  const opts = container.querySelectorAll('.radio-option');
+  const letters = ['A','B','C','D'];
+
+  opts.forEach((opt, i) => {
+    opt.style.pointerEvents = 'none';
+    const bubble = opt.querySelector('.opt-bubble');
+    if (letters[i] === chosen) {
+      opt.classList.add(chosen === ANSWERS[qNum-1] ? 'correct' : 'wrong');
+      bubble.classList.add('selected-bubble');
+    }
+    if (letters[i] === ANSWERS[qNum-1] && chosen !== ANSWERS[qNum-1]) {
+      opt.classList.add('correct');
+    }
+  });
+
+  correct[qNum - 1] = (chosen === ANSWERS[qNum - 1]);
+
+  const fb = document.getElementById('fb' + qNum);
+  fb.classList.add('show');
+  fb.classList.add(correct[qNum - 1] ? 'ok' : 'err');
+
+  updateProgress();
+}
+
+/* ── Progreso ─────────────────────────────────────── */
+function updateProgress() {
+  const done   = answered.filter(Boolean).length;
+  const textFields = document.querySelectorAll('input[type="text"]:not(.match-select), textarea, select');
+  let filled = 0;
+  textFields.forEach(f => { if (f.value.trim()) filled++; });
+  const total  = TOTAL_MC + 8; // MC + algunos campos abiertos
+  const pct    = Math.min(100, Math.round((done + Math.min(filled, 8)) / total * 100));
+  document.getElementById('progressFill').style.width  = pct + '%';
+  document.getElementById('progressCount').textContent = done + ' / ' + TOTAL_MC + ' respondidas';
+}
+
+/* ── Calificación sección I ───────────────────────── */
+function calcScore() {
+  const score = correct.filter(Boolean).length * PTS_EACH;
+  const panel = document.getElementById('resultPanel');
+  panel.classList.add('show');
+
+  document.getElementById('gradeDisplay').innerHTML =
+    score + ' <span>/ ' + (TOTAL_MC * PTS_EACH) + '</span>';
+
+  const breakdown = document.getElementById('resultBreakdown');
+  const right  = correct.filter(Boolean).length;
+  const wrong  = answered.filter(Boolean).length - right;
+  const skip   = TOTAL_MC - answered.filter(Boolean).length;
+
+  breakdown.innerHTML = `
+    <div class="result-item">
+      <div class="result-item-label">Respuestas correctas</div>
+      <div class="result-item-value">${right}</div>
+      <div class="result-item-sub">${right * PTS_EACH} puntos obtenidos</div>
+    </div>
+    <div class="result-item">
+      <div class="result-item-label">Respuestas incorrectas</div>
+      <div class="result-item-value">${wrong}</div>
+      <div class="result-item-sub">${wrong * PTS_EACH} puntos no acreditados</div>
+    </div>
+    <div class="result-item">
+      <div class="result-item-label">Sin responder</div>
+      <div class="result-item-value">${skip}</div>
+      <div class="result-item-sub">0 puntos</div>
+    </div>
+    <div class="result-item">
+      <div class="result-item-label">Calificacion parcial</div>
+      <div class="result-item-value">${score}</div>
+      <div class="result-item-sub">de 40 puntos posibles</div>
+    </div>`;
+
+  const pct = score / (TOTAL_MC * PTS_EACH) * 100;
+  let msg = '';
+  if      (pct >= 90) msg = '<strong>Excelente dominio conceptual.</strong> Comprendes con solidez la estructura y el funcionamiento interno de la CPU. Las secciones II y III confirmarán tu capacidad de aplicar esos conceptos.';
+  else if (pct >= 70) msg = '<strong>Dominio satisfactorio.</strong> La mayor parte de los conceptos esta bien integrada. Revisa los reactivos con retroalimentacion roja para reforzar los puntos debiles antes de la siguiente sesion.';
+  else if (pct >= 50) msg = '<strong>Dominio en desarrollo.</strong> Algunos conceptos clave aun requieren refuerzo. Se recomienda releer la seccion de registros y el ciclo de instruccion, y resolver el ejercicio de traza nuevamente.';
+  else                msg = '<strong>Dominio insuficiente.</strong> Es necesario repasar los contenidos de la Unidad 2 con mayor detenimiento. Habla con tu asesor para acordar una estrategia de nivelacion antes de la siguiente clase.';
+
+  document.getElementById('resultFeedback').innerHTML = msg;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ── Likert ───────────────────────────────────────── */
+function setLikert(id, val) {
+  const container = document.getElementById(id);
+  container.querySelectorAll('.likert-opt').forEach((opt, i) => {
+    opt.classList.toggle('active', i + 1 === val);
+  });
+}
+
+/* ── Contador de caracteres ───────────────────────── */
+function countChars(el, counterId, max) {
+  const len = el.value.length;
+  const counter = document.getElementById(counterId);
+  counter.textContent = len + ' / ' + max + ' caracteres';
+  counter.classList.toggle('warn', len > max * 0.85);
+}
+
+/* ── Imprimir / PDF ───────────────────────────────── */
+function printToPDF() {
+  const name = document.getElementById('st-name').value.trim();
+  if (!name) {
+    alert('Escribe tu nombre completo antes de guardar el PDF.');
+    document.getElementById('st-name').focus();
+    return;
+  }
+  document.title = 'Evaluacion_Clase3_CPU_' + name.replace(/\s+/g,'_');
+  window.print();
+}
+
+/* ── Anti-copia adicional ─────────────────────────── */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && ['c','a','u','s'].includes(e.key.toLowerCase())) {
+    // Permitir Ctrl+S para que el usuario guarde manualmente
+    if (e.key.toLowerCase() === 's') return;
+    e.preventDefault();
+  }
+});
+document.addEventListener('dragstart', e => e.preventDefault());
+</script>
+</body>
+</html>
