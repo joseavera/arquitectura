@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador CPU — Ciclo de Instrucción</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════════ */
+:root {
+  --g:        #5e162e;   /* guinda principal        */
+  --g-dark:   #3e0d1e;   /* guinda oscuro           */
+  --g-mid:    #7a2040;   /* guinda medio            */
+  --g-light:  #f5e8ee;   /* guinda palido           */
+  --g-rule:   #c85070;   /* acento / lineas         */
+  --g-glow:   rgba(94,22,46,.15);
+
+  --bg:       #ffffff;
+  --surface:  #fafafa;
+  --surface2: #f3f0f1;
+  --border:   #e2d8da;
+  --border2:  #c8b4ba;
+
+  --ink:      #1a1215;
+  --ink2:     #5c4850;
+  --ink3:     #8c7880;
+
+  --green:    #1a5c2a;
+  --green-lt: #e8f5e9;
+  --amber:    #7a4800;
+  --amber-lt: #fff3e0;
+  --red:      #8b1a1a;
+  --red-lt:   #fdecea;
+  --blue:     #0d3b6e;
+  --blue-lt:  #e3f0ff;
+
+  --mono:     'JetBrains Mono', monospace;
+  --ui:       'Inter', sans-serif;
+  --display:  'Cormorant Garamond', serif;
+
+  --r: 4px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; scroll-behavior: smooth; }
+
+body {
+  background: #f0ecee;
+  font-family: var(--ui);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem 3rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   SHELL PRINCIPAL
+═══════════════════════════════════════════════════ */
+.shell {
+  width: 100%;
+  max-width: 980px;
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
+  box-shadow: 0 4px 32px rgba(94,22,46,.1), 0 1px 4px rgba(0,0,0,.06);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Barra de título ──────────────────────────── */
+.titlebar {
+  background: var(--g);
+  padding: .65rem 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  user-select: none;
+}
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.win-dots { display: flex; gap: .35rem; }
+.win-dot  {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,.25);
+}
+.win-dot.active { background: #56d364; }
+.titlebar-name {
+  font-family: var(--mono);
+  font-size: .78rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.titlebar-right {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: rgba(255,255,255,.55);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* ── Layout de columnas ───────────────────────── */
+.main-cols {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  min-height: 0;
+}
+@media (max-width: 760px) {
+  .main-cols { grid-template-columns: 1fr; }
+  .side-panel { border-left: none; border-top: 1.5px solid var(--border); }
+}
+
+/* ── Panel izquierdo ──────────────────────────── */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  border-right: 1.5px solid var(--border);
+  min-height: 0;
+}
+
+/* ── Panel derecho ────────────────────────────── */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+/* ═══════════════════════════════════════════════════
+   REGISTROS
+═══════════════════════════════════════════════════ */
+.panel-label {
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding: .85rem 1.1rem .4rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-label span {
+  font-family: var(--ui);
+  font-size: .7rem;
+  font-weight: 500;
+  color: var(--g-rule);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.reg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-bottom: 1.5px solid var(--border);
+}
+.reg-grid-row2 { grid-template-columns: repeat(3, 1fr); }
+
+.reg-cell {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: .7rem .9rem;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  position: relative;
+  transition: background .2s;
+}
+.reg-cell:last-child { border-right: none; }
+.reg-cell.changed {
+  background: var(--g-light);
+  animation: pulse-reg .6s ease;
+}
+@keyframes pulse-reg {
+  0%   { background: rgba(94,22,46,.18); }
+  100% { background: var(--g-light); }
+}
+
+.reg-name {
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--g);
+  text-transform: uppercase;
+}
+.reg-value {
+  font-family: var(--mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+  min-height: 1.4rem;
+  word-break: break-all;
+}
+.reg-desc {
+  font-size: .68rem;
+  color: var(--ink3);
+  font-family: var(--ui);
+  margin-top: .05rem;
+}
+.reg-cell.flags-cell .reg-value {
+  font-size: .82rem;
+  letter-spacing: .03em;
+}
+.reg-cell.flags-cell .flag-bit {
+  display: inline-block;
+  padding: .05rem .3rem;
+  border-radius: 2px;
+  margin-right: .15rem;
+  font-size: .78rem;
+}
+.flag-on  { background: var(--g); color: #fff; }
+.flag-off { background: var(--surface2); color: var(--ink3); }
+
+/* ═══════════════════════════════════════════════════
+   EDITOR DE PROGRAMA
+═══════════════════════════════════════════════════ */
+.prog-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.prog-editor-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Tabla de instrucciones */
+.prog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: .82rem;
+}
+.prog-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+  cursor: default;
+  user-select: none;
+}
+.prog-table tbody tr:hover:not(.active-line):not(.done-line) {
+  background: #faf7f8;
+}
+.prog-table tbody tr.active-line {
+  background: var(--g-light);
+}
+.prog-table tbody tr.done-line {
+  background: #f0faf2;
+}
+.prog-table tbody tr.error-line {
+  background: var(--red-lt);
+}
+
+.prog-table .col-num {
+  width: 36px;
+  text-align: right;
+  padding: .55rem .6rem .55rem .5rem;
+  color: var(--ink3);
+  font-size: .7rem;
+  vertical-align: middle;
+  border-right: 1px solid var(--border);
+  font-weight: 400;
+}
+.active-line .col-num {
+  background: var(--g);
+  color: #fff;
+  font-weight: 700;
+}
+.done-line .col-num { color: var(--green); }
+
+.prog-table .col-code {
+  padding: .55rem .5rem .55rem .75rem;
+  vertical-align: middle;
+}
+
+/* El input de cada línea de código */
+.line-input {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: .82rem;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  caret-color: var(--g);
+}
+.line-input::placeholder { color: var(--ink3); font-weight: 400; }
+.line-input:focus { color: var(--ink); }
+.active-line  .line-input { color: var(--g-dark); }
+.done-line    .line-input { color: var(--green); }
+
+/* Comentario inline */
+.line-comment {
+  color: var(--ink3);
+  font-size: .75rem;
+  pointer-events: none;
+  white-space: nowrap;
+  padding-left: .3rem;
+  font-style: italic;
+}
+
+/* Controles de línea */
+.col-ctrl {
+  width: 60px;
+  padding: 0 .4rem;
+  vertical-align: middle;
+  text-align: right;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.prog-table tbody tr:hover .col-ctrl { opacity: 1; }
+.line-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink3);
+  font-size: .75rem;
+  padding: .2rem .3rem;
+  border-radius: var(--r);
+  font-family: var(--mono);
+  transition: all .15s;
+}
+.line-btn:hover { background: var(--g-light); color: var(--g); }
+.line-btn.del:hover { background: var(--red-lt); color: var(--red); }
+
+/* Barra de agregar línea */
+.add-line-bar {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem .8rem;
+  border-top: 1px dashed var(--border2);
+  background: var(--surface);
+}
+.add-line-bar button {
+  font-family: var(--mono);
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .3rem .7rem;
+  border: 1.5px solid var(--border2);
+  background: var(--bg);
+  color: var(--ink2);
+  cursor: pointer;
+  border-radius: var(--r);
+  letter-spacing: .03em;
+  transition: all .15s;
+}
+.add-line-bar button:hover {
+  border-color: var(--g);
+  color: var(--g);
+  background: var(--g-light);
+}
+.add-line-bar .spacer { flex: 1; }
+.add-line-bar .hint {
+  font-size: .68rem;
+  color: var(--ink3);
+  font-family: var(--mono);
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════
+   PANEL LATERAL — CONFIGURACIÓN INICIAL
+═══════════════════════════════════════════════════ */
+.config-section {
+  padding: .8rem 1rem 1rem;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.config-title {
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: .7rem;
+}
+
+.reg-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: .5rem;
+  margin-bottom: .65rem;
+}
+
+.reg-inp-group {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+.reg-inp-label {
+  font-family: var(--mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--g);
+  text-transform: uppercase;
+}
+.reg-inp-field {
+  font-family: var(--mono);
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--ink);
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r);
+  padding: .35rem .5rem;
+  background: var(--bg);
+  outline: none;
+  width: 100%;
+  text-align: center;
+  transition: border-color .15s;
+}
+.reg-inp-field:focus { border-color: var(--g); }
+.reg-inp-field::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.apply-btn {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .5rem;
+  background: var(--g);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: background .15s;
+}
+.apply-btn:hover { background: var(--g-dark); }
+
+/* ── Cheatsheet de instrucciones ──────────────── */
+.cheat-section {
+  padding: .8rem 1rem;
+  border-bottom: 1.5px solid var(--border);
+  flex: 1;
+  overflow-y: auto;
+}
+
+.cheat-title {
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: .65rem;
+}
+
+.cheat-group { margin-bottom: .9rem; }
+.cheat-group-name {
+  font-family: var(--mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--g-rule);
+  margin-bottom: .35rem;
+  padding-bottom: .2rem;
+  border-bottom: 1px solid var(--border);
+}
+.cheat-row {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  margin-bottom: .3rem;
+  cursor: pointer;
+  padding: .2rem .3rem;
+  border-radius: var(--r);
+  transition: background .12s;
+}
+.cheat-row:hover { background: var(--g-light); }
+.cheat-code {
+  font-family: var(--mono);
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--g);
+  min-width: 120px;
+  white-space: nowrap;
+}
+.cheat-desc {
+  font-size: .72rem;
+  color: var(--ink2);
+  line-height: 1.4;
+}
+
+/* Tooltip de clic */
+.cheat-row .cheat-hint {
+  font-size: .64rem;
+  color: var(--g-rule);
+  margin-left: auto;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .12s;
+}
+.cheat-row:hover .cheat-hint { opacity: 1; }
+
+/* ═══════════════════════════════════════════════════
+   LOG DE EJECUCIÓN
+═══════════════════════════════════════════════════ */
+.log-section {
+  border-top: 1.5px solid var(--border);
+}
+
+.log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .5rem 1.1rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.log-header-left {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.log-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--border2);
+}
+.log-dot.active { background: #56d364; animation: blink 1.2s ease infinite; }
+@keyframes blink { 50% { opacity: .3; } }
+.log-title {
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+.log-clear {
+  font-family: var(--mono);
+  font-size: .65rem;
+  color: var(--ink3);
+  cursor: pointer;
+  padding: .15rem .4rem;
+  border-radius: var(--r);
+  border: 1px solid transparent;
+  background: none;
+  transition: all .12s;
+}
+.log-clear:hover { border-color: var(--border2); color: var(--ink2); }
+
+.log-body {
+  font-family: var(--mono);
+  font-size: .75rem;
+  line-height: 1.8;
+  padding: .6rem 1.1rem .8rem;
+  max-height: 140px;
+  overflow-y: auto;
+  background: #fdfafc;
+  color: var(--ink2);
+  scroll-behavior: smooth;
+}
+.log-body:empty::before {
+  content: 'El registro de ejecución aparecerá aquí.';
+  color: var(--ink3);
+  font-style: italic;
+}
+
+/* Clases de log */
+.log-fetch   { color: var(--blue); }
+.log-decode  { color: var(--g-mid); }
+.log-exec    { color: var(--green); }
+.log-write   { color: var(--g); font-weight: 600; }
+.log-hlt     { color: var(--g); font-weight: 700; letter-spacing: .04em; }
+.log-err     { color: var(--red); font-weight: 600; }
+.log-sep     { color: var(--border2); display: block; margin: .1rem 0; }
+.log-phase   { font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════
+   CONTROLES
+═══════════════════════════════════════════════════ */
+.controls {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  border-top: 2px solid var(--g);
+}
+.ctrl-btn {
+  font-family: var(--mono);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .85rem .5rem;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  transition: all .15s;
+  border-right: 1.5px solid rgba(255,255,255,.15);
+}
+.ctrl-btn:last-child { border-right: none; }
+.ctrl-btn.primary {
+  background: var(--g);
+  color: #fff;
+}
+.ctrl-btn.primary:hover { background: var(--g-dark); }
+.ctrl-btn.primary:disabled { background: var(--border2); cursor: not-allowed; color: var(--ink3); }
+.ctrl-btn.secondary {
+  background: var(--surface2);
+  color: var(--ink2);
+  border-right: 1.5px solid var(--border);
+}
+.ctrl-btn.secondary:hover { background: var(--g-light); color: var(--g); }
+.ctrl-btn.secondary:disabled { opacity: .45; cursor: not-allowed; }
+.ctrl-btn.danger {
+  background: var(--surface2);
+  color: var(--ink2);
+}
+.ctrl-btn.danger:hover { background: var(--red-lt); color: var(--red); }
+
+.ctrl-btn svg { flex-shrink: 0; }
+
+/* ── Status bar ────────────────────────────────── */
+.status-bar {
+  background: var(--g-dark);
+  color: rgba(255,255,255,.6);
+  font-family: var(--mono);
+  font-size: .65rem;
+  letter-spacing: .06em;
+  padding: .3rem 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  user-select: none;
+}
+.status-item { display: flex; align-items: center; gap: .4rem; }
+.status-item strong { color: rgba(255,255,255,.9); }
+.status-badge {
+  padding: .1rem .45rem;
+  border-radius: 2px;
+  font-size: .6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.badge-ready  { background: rgba(86,211,100,.2);  color: #56d364; }
+.badge-run    { background: rgba(86,211,100,.3);  color: #56d364; }
+.badge-halt   { background: rgba(255,255,255,.15); color: rgba(255,255,255,.6); }
+.badge-error  { background: rgba(200,60,60,.3);   color: #ff8080; }
+
+/* ═══════════════════════════════════════════════════
+   FASE ACTIVA — indicador
+═══════════════════════════════════════════════════ */
+.phase-indicator {
+  display: flex;
+  gap: 0;
+  border-bottom: 1.5px solid var(--border);
+  overflow: hidden;
+}
+.phase-step {
+  flex: 1;
+  text-align: center;
+  padding: .35rem .2rem;
+  font-family: var(--mono);
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  background: var(--surface2);
+  border-right: 1px solid var(--border);
+  transition: all .25s;
+  user-select: none;
+}
+.phase-step:last-child { border-right: none; }
+.phase-step.active {
+  background: var(--g);
+  color: #fff;
+}
+.phase-step.done {
+  background: var(--green-lt);
+  color: var(--green);
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILIDADES
+═══════════════════════════════════════════════════ */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+}
+
+/* Scroll fino */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--g-rule); }
+
+/* Tooltip de inserción */
+.insert-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--g);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: .72rem;
+  padding: .4rem .9rem;
+  border-radius: var(--r);
+  pointer-events: none;
+  opacity: 0;
+  transition: all .25s;
+  white-space: nowrap;
+  z-index: 999;
+}
+.insert-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="shell" role="main" aria-label="Simulador CPU — Ciclo de Instrucción">
+
+  <!-- ── Barra de título ─────────────────────────── -->
+  <div class="titlebar" aria-hidden="true">
+    <div class="titlebar-left">
+      <div class="win-dots">
+        <div class="win-dot active" id="statusDot"></div>
+        <div class="win-dot"></div>
+      </div>
+      <span class="titlebar-name">Simulador CPU — Ciclo de Instrucción</span>
+    </div>
+    <span class="titlebar-right">Registros x86 simplificados</span>
+  </div>
+
+  <!-- ── Columnas principales ───────────────────── -->
+  <div class="main-cols">
+
+    <!-- ══════════════════ COLUMNA IZQUIERDA ══════ -->
+    <div class="left-panel">
+
+      <!-- Registros -->
+      <div class="panel-label">
+        Estado de registros
+        <span id="cycleCount">ciclo 0</span>
+      </div>
+
+      <!-- Fila 1: PC, IR, AX, BX, CX -->
+      <div class="reg-grid" style="grid-template-columns: repeat(5,1fr);" id="regGrid1">
+        <div class="reg-cell" id="rcPC">
+          <div class="reg-name">PC</div>
+          <div class="reg-value" id="rvPC">0x0000</div>
+          <div class="reg-desc">Program Counter</div>
+        </div>
+        <div class="reg-cell" id="rcIR">
+          <div class="reg-name">IR</div>
+          <div class="reg-value" id="rvIR">—</div>
+          <div class="reg-desc">Instruction Register</div>
+        </div>
+        <div class="reg-cell" id="rcAX">
+          <div class="reg-name">AX</div>
+          <div class="reg-value" id="rvAX">0</div>
+          <div class="reg-desc">Registro general</div>
+        </div>
+        <div class="reg-cell" id="rcBX">
+          <div class="reg-name">BX</div>
+          <div class="reg-value" id="rvBX">0</div>
+          <div class="reg-desc">Registro general</div>
+        </div>
+        <div class="reg-cell" id="rcCX">
+          <div class="reg-name">CX</div>
+          <div class="reg-value" id="rvCX">0</div>
+          <div class="reg-desc">Registro general</div>
+        </div>
+      </div>
+
+      <!-- Fila 2: DX, MAR, MBR, FLAGS -->
+      <div class="reg-grid" style="grid-template-columns: repeat(4,1fr); border-top:none;" id="regGrid2">
+        <div class="reg-cell" id="rcDX">
+          <div class="reg-name">DX</div>
+          <div class="reg-value" id="rvDX">0</div>
+          <div class="reg-desc">Registro general</div>
+        </div>
+        <div class="reg-cell" id="rcMAR">
+          <div class="reg-name">MAR</div>
+          <div class="reg-value" id="rvMAR">—</div>
+          <div class="reg-desc">Mem. Address Reg.</div>
+        </div>
+        <div class="reg-cell" id="rcMBR">
+          <div class="reg-name">MBR</div>
+          <div class="reg-value" id="rvMBR">—</div>
+          <div class="reg-desc">Mem. Buffer Reg.</div>
+        </div>
+        <div class="reg-cell flags-cell" id="rcFLAGS">
+          <div class="reg-name">FLAGS</div>
+          <div class="reg-value" id="rvFLAGS">
+            <span class="flag-bit flag-off" id="fZF">ZF=0</span>
+            <span class="flag-bit flag-off" id="fCF">CF=0</span>
+            <span class="flag-bit flag-off" id="fSF">SF=0</span>
+            <span class="flag-bit flag-off" id="fOF">OF=0</span>
+          </div>
+          <div class="reg-desc">Registro de estado</div>
+        </div>
+      </div>
+
+      <!-- Indicador de fase -->
+      <div class="phase-indicator" id="phaseIndicator">
+        <div class="phase-step" id="ph0">Fetch</div>
+        <div class="phase-step" id="ph1">Decode</div>
+        <div class="phase-step" id="ph2">Fetch Ops</div>
+        <div class="phase-step" id="ph3">Execute</div>
+        <div class="phase-step" id="ph4">Write-back</div>
+      </div>
+
+      <!-- Editor de programa -->
+      <div class="prog-section">
+        <div class="panel-label">
+          Programa en memoria
+          <span id="progStats">6 instrucciones</span>
+        </div>
+
+        <div class="prog-editor-wrap">
+          <table class="prog-table" id="progTable" aria-label="Editor de programa">
+            <tbody id="progBody">
+              <!-- Generado por JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="add-line-bar">
+          <button onclick="addLine()">+ Agregar línea</button>
+          <button onclick="clearProgram()">Limpiar todo</button>
+          <button onclick="loadExample()">Cargar ejemplo</button>
+          <div class="spacer"></div>
+          <span class="hint">Clic en instrucción del panel derecho para insertar</span>
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="log-section">
+        <div class="log-header" onclick="toggleLog()" role="button" aria-expanded="true" aria-controls="logBody">
+          <div class="log-header-left">
+            <div class="log-dot" id="logDot"></div>
+            <span class="log-title">Registro de ejecución</span>
+          </div>
+          <button class="log-clear" onclick="event.stopPropagation();clearLog()">Limpiar</button>
+        </div>
+        <div class="log-body" id="logBody" role="log" aria-live="polite"></div>
+      </div>
+
+    </div><!-- /left-panel -->
+
+    <!-- ══════════════════ COLUMNA DERECHA ════════ -->
+    <div class="side-panel">
+
+      <!-- Configuración de valores iniciales -->
+      <div class="panel-label">Valores iniciales</div>
+      <div class="config-section">
+        <div class="config-title">Registros de propósito general</div>
+        <div class="reg-inputs">
+          <div class="reg-inp-group">
+            <label class="reg-inp-label" for="initAX">AX</label>
+            <input class="reg-inp-field" type="number" id="initAX" value="0" min="-32768" max="65535">
+          </div>
+          <div class="reg-inp-group">
+            <label class="reg-inp-label" for="initBX">BX</label>
+            <input class="reg-inp-field" type="number" id="initBX" value="0" min="-32768" max="65535">
+          </div>
+          <div class="reg-inp-group">
+            <label class="reg-inp-label" for="initCX">CX</label>
+            <input class="reg-inp-field" type="number" id="initCX" value="0" min="-32768" max="65535">
+          </div>
+          <div class="reg-inp-group">
+            <label class="reg-inp-label" for="initDX">DX</label>
+            <input class="reg-inp-field" type="number" id="initDX" value="0" min="-32768" max="65535">
+          </div>
+          <div class="reg-inp-group" style="grid-column: 2 / 4;">
+            <label class="reg-inp-label" for="stepDelay">Retardo (ms)</label>
+            <input class="reg-inp-field" type="number" id="stepDelay" value="600" min="100" max="3000" step="100">
+          </div>
+        </div>
+        <button class="apply-btn" onclick="applyConfig()">Aplicar y reiniciar</button>
+      </div>
+
+      <!-- Referencia de instrucciones -->
+      <div class="panel-label">Instrucciones disponibles</div>
+      <div class="cheat-section" id="cheatSheet">
+
+        <div class="cheat-group">
+          <div class="cheat-group-name">Transferencia</div>
+          <div class="cheat-row" onclick="insertInstruction('MOV AX, 0')"  title="Insertar">
+            <span class="cheat-code">MOV dst, src</span>
+            <span class="cheat-desc">dst ← src</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('MOV AX, BX')" title="Insertar">
+            <span class="cheat-code">MOV AX, BX</span>
+            <span class="cheat-desc">AX ← BX</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('MOV BX, AX')" title="Insertar">
+            <span class="cheat-code">MOV BX, AX</span>
+            <span class="cheat-desc">BX ← AX</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+        </div>
+
+        <div class="cheat-group">
+          <div class="cheat-group-name">Aritméticas</div>
+          <div class="cheat-row" onclick="insertInstruction('ADD AX, BX')" title="Insertar">
+            <span class="cheat-code">ADD dst, src</span>
+            <span class="cheat-desc">dst ← dst + src</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('SUB AX, BX')" title="Insertar">
+            <span class="cheat-code">SUB dst, src</span>
+            <span class="cheat-desc">dst ← dst − src</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('MUL AX, BX')" title="Insertar">
+            <span class="cheat-code">MUL dst, src</span>
+            <span class="cheat-desc">dst ← dst × src</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('DIV AX, BX')" title="Insertar">
+            <span class="cheat-code">DIV dst, src</span>
+            <span class="cheat-desc">dst ← dst ÷ src (entero)</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('INC AX')" title="Insertar">
+            <span class="cheat-code">INC reg</span>
+            <span class="cheat-desc">reg ← reg + 1</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('DEC AX')" title="Insertar">
+            <span class="cheat-code">DEC reg</span>
+            <span class="cheat-desc">reg ← reg − 1</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('NEG AX')" title="Insertar">
+            <span class="cheat-code">NEG reg</span>
+            <span class="cheat-desc">reg ← 0 − reg</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+        </div>
+
+        <div class="cheat-group">
+          <div class="cheat-group-name">Lógicas</div>
+          <div class="cheat-row" onclick="insertInstruction('AND AX, BX')" title="Insertar">
+            <span class="cheat-code">AND dst, src</span>
+            <span class="cheat-desc">dst ← dst AND src (bit a bit)</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('OR AX, BX')" title="Insertar">
+            <span class="cheat-code">OR dst, src</span>
+            <span class="cheat-desc">dst ← dst OR src (bit a bit)</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('XOR AX, BX')" title="Insertar">
+            <span class="cheat-code">XOR dst, src</span>
+            <span class="cheat-desc">dst ← dst XOR src</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('NOT AX')" title="Insertar">
+            <span class="cheat-code">NOT reg</span>
+            <span class="cheat-desc">reg ← complemento bit a bit</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('CMP AX, BX')" title="Insertar">
+            <span class="cheat-code">CMP r1, r2</span>
+            <span class="cheat-desc">Actualiza FLAGS sin guardar resultado</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+        </div>
+
+        <div class="cheat-group">
+          <div class="cheat-group-name">Desplazamiento</div>
+          <div class="cheat-row" onclick="insertInstruction('SHL AX, 1')" title="Insertar">
+            <span class="cheat-code">SHL reg, n</span>
+            <span class="cheat-desc">Desplaza n bits a la izquierda (× 2ⁿ)</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('SHR AX, 1')" title="Insertar">
+            <span class="cheat-code">SHR reg, n</span>
+            <span class="cheat-desc">Desplaza n bits a la derecha (÷ 2ⁿ)</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+        </div>
+
+        <div class="cheat-group">
+          <div class="cheat-group-name">Control</div>
+          <div class="cheat-row" onclick="insertInstruction('HLT')" title="Insertar">
+            <span class="cheat-code">HLT</span>
+            <span class="cheat-desc">Detener la ejecución</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+          <div class="cheat-row" onclick="insertInstruction('NOP')" title="Insertar">
+            <span class="cheat-code">NOP</span>
+            <span class="cheat-desc">No hace nada (un ciclo de reloj)</span>
+            <span class="cheat-hint">insertar</span>
+          </div>
+        </div>
+
+        <div class="cheat-group" style="margin-top:.5rem;">
+          <div class="cheat-group-name">Registros válidos</div>
+          <div style="font-family:var(--mono);font-size:.72rem;color:var(--ink2);line-height:1.8;">
+            <strong>dst / src:</strong> AX, BX, CX, DX<br>
+            <strong>src inmediato:</strong> cualquier número entero<br>
+            <strong>Ej:</strong> <span style="color:var(--g);">MOV AX, 15</span><br>
+            <strong>Ej:</strong> <span style="color:var(--g);">ADD AX, 7</span><br>
+            <strong>Ej:</strong> <span style="color:var(--g);">SUB BX, CX</span>
+          </div>
+        </div>
+
+      </div><!-- /cheat-section -->
+
+    </div><!-- /side-panel -->
+  </div><!-- /main-cols -->
+
+  <!-- ── Controles ───────────────────────────────── -->
+  <div class="controls" role="toolbar" aria-label="Controles de simulación">
+    <button class="ctrl-btn primary" id="btnStep" onclick="step()" aria-label="Ejecutar siguiente instrucción">
+      <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <polygon points="2,1 10,6 2,11" fill="currentColor"/>
+      </svg>
+      Ejecutar siguiente instrucción
+    </button>
+    <button class="ctrl-btn secondary" id="btnRun" onclick="runAll()" aria-label="Ejecutar todo">
+      <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <polygon points="1,1 7,6 1,11" fill="currentColor"/>
+        <rect x="8" y="1" width="3" height="10" rx="1" fill="currentColor"/>
+      </svg>
+      Ejecutar todo
+    </button>
+    <button class="ctrl-btn danger" id="btnReset" onclick="reset()" aria-label="Reiniciar">
+      <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <path d="M10 6A4 4 0 1 1 6 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <polygon points="5,0 8,3 5,3" fill="currentColor"/>
+      </svg>
+      Reiniciar
+    </button>
+  </div>
+
+  <!-- ── Barra de estado ─────────────────────────── -->
+  <div class="status-bar" aria-live="polite">
+    <div class="status-item">
+      Estado: <strong id="statusText">Listo</strong>
+      <span class="status-badge badge-ready" id="statusBadge">READY</span>
+    </div>
+    <div class="status-item">PC: <strong id="statusPC">0x0000</strong></div>
+    <div class="status-item">Instrucción: <strong id="statusInstr">—</strong></div>
+    <div class="status-item">Fase: <strong id="statusPhase">—</strong></div>
+  </div>
+
+</div><!-- /shell -->
+
+<!-- Toast de inserción -->
+<div class="insert-toast" id="toast" aria-live="assertive"></div>
+
+<script>
+/* ═════════════════════════════════════════════════════
+   ESTADO DEL SIMULADOR
+═════════════════════════════════════════════════════ */
+const REGS_INITIAL = { AX:0, BX:0, CX:0, DX:0 };
+
+let state = {
+  regs: { ...REGS_INITIAL },
+  PC: 0,
+  IR: '—',
+  MAR: '—',
+  MBR: '—',
+  flags: { ZF:0, CF:0, SF:0, OF:0 },
+  running: false,
+  halted: false,
+  cycle: 0,
+  error: null,
+};
+
+let program = [
+  'MOV AX, 10',
+  'MOV BX, 5',
+  'ADD AX, BX',
+  'MOV CX, AX',
+  'SUB AX, 3',
+  'HLT',
+];
+
+let runTimer = null;
+let logOpen  = true;
+
+/* ── Valores iniciales configurables ──────────────── */
+let initVals = { AX:0, BX:0, CX:0, DX:0, delay:600 };
+
+/* ═════════════════════════════════════════════════════
+   RENDERIZADO DEL EDITOR
+═════════════════════════════════════════════════════ */
+const REGS_VALID = ['AX','BX','CX','DX'];
+
+function pcHex(n) {
+  return '0x' + (n * 2).toString(16).toUpperCase().padStart(4,'0');
+}
+
+function renderProgram() {
+  const tbody = document.getElementById('progBody');
+  tbody.innerHTML = '';
+
+  program.forEach((line, i) => {
+    const tr = document.createElement('tr');
+    tr.id = 'pline-' + i;
+    if (!state.halted && i === state.PC) tr.classList.add('active-line');
+    else if (i < state.PC)               tr.classList.add('done-line');
+
+    const comment = buildComment(line);
+
+    tr.innerHTML = `
+      <td class="col-num">${i}</td>
+      <td class="col-code">
+        <input class="line-input" type="text" value="${escHtml(line)}"
+          placeholder="Ej: ADD AX, BX"
+          data-index="${i}"
+          onchange="updateLine(${i}, this.value)"
+          onkeydown="lineKeydown(event, ${i})"
+          spellcheck="false" autocomplete="off">
+        <span class="line-comment">${escHtml(comment)}</span>
+      </td>
+      <td class="col-ctrl">
+        <button class="line-btn" onclick="moveLine(${i},-1)" title="Subir" aria-label="Subir línea ${i}">↑</button>
+        <button class="line-btn" onclick="moveLine(${i},1)"  title="Bajar" aria-label="Bajar línea ${i}">↓</button>
+        <button class="line-btn del" onclick="deleteLine(${i})" title="Eliminar" aria-label="Eliminar línea ${i}">✕</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('progStats').textContent =
+    program.length + ' instruccion' + (program.length !== 1 ? 'es' : '');
+}
+
+function buildComment(raw) {
+  const t = raw.trim().toUpperCase();
+  if (!t || t.startsWith(';')) return '';
+  const parts = t.split(/[\s,]+/);
+  const op  = parts[0];
+  const dst = parts[1];
+  const src = parts[2];
+
+  const fmtSrc = (s) => {
+    if (!s) return '';
+    return REGS_VALID.includes(s) ? s : s;
+  };
+
+  const map = {
+    MOV: `${dst} ← ${fmtSrc(src)}`,
+    ADD: `${dst} ← ${dst} + ${fmtSrc(src)}`,
+    SUB: `${dst} ← ${dst} − ${fmtSrc(src)}`,
+    MUL: `${dst} ← ${dst} × ${fmtSrc(src)}`,
+    DIV: `${dst} ← ${dst} ÷ ${fmtSrc(src)}`,
+    INC: `${dst} ← ${dst} + 1`,
+    DEC: `${dst} ← ${dst} − 1`,
+    NEG: `${dst} ← 0 − ${dst}`,
+    AND: `${dst} ← ${dst} AND ${fmtSrc(src)}`,
+    OR:  `${dst} ← ${dst} OR ${fmtSrc(src)}`,
+    XOR: `${dst} ← ${dst} XOR ${fmtSrc(src)}`,
+    NOT: `${dst} ← NOT ${dst}`,
+    CMP: `Flags: ${dst} − ${fmtSrc(src)}`,
+    SHL: `${dst} ← ${dst} << ${fmtSrc(src)}`,
+    SHR: `${dst} ← ${dst} >> ${fmtSrc(src)}`,
+    HLT: 'Detener',
+    NOP: 'Sin operación',
+  };
+  return '; ' + (map[op] || '');
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ── Edición de líneas ────────────────────────────── */
+function updateLine(i, val) {
+  program[i] = val;
+  // Actualizar comentario inline sin re-render completo
+  const row = document.getElementById('pline-' + i);
+  if (row) {
+    const cmt = row.querySelector('.line-comment');
+    if (cmt) cmt.textContent = escHtml(buildComment(val));
+  }
+  document.getElementById('progStats').textContent =
+    program.length + ' instruccion' + (program.length !== 1 ? 'es' : '');
+}
+
+function lineKeydown(e, i) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    program.splice(i + 1, 0, '');
+    renderProgram();
+    // Focus siguiente línea
+    setTimeout(() => {
+      const next = document.querySelector(`[data-index="${i+1}"]`);
+      if (next) next.focus();
+    }, 30);
+  }
+  if (e.key === 'Backspace' && e.target.value === '' && program.length > 1) {
+    e.preventDefault();
+    deleteLine(i);
+    setTimeout(() => {
+      const prev = document.querySelector(`[data-index="${Math.max(0,i-1)}"]`);
+      if (prev) prev.focus();
+    }, 30);
+  }
+}
+
+function addLine() {
+  program.push('');
+  renderProgram();
+  setTimeout(() => {
+    const last = document.querySelector(`[data-index="${program.length-1}"]`);
+    if (last) last.focus();
+  }, 30);
+}
+
+function deleteLine(i) {
+  if (program.length <= 1) { program[0] = ''; renderProgram(); return; }
+  program.splice(i, 1);
+  if (state.PC >= program.length) state.PC = Math.max(0, program.length - 1);
+  renderProgram();
+}
+
+function moveLine(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= program.length) return;
+  [program[i], program[j]] = [program[j], program[i]];
+  renderProgram();
+}
+
+function clearProgram() {
+  if (!confirm('¿Limpiar todo el programa?')) return;
+  program = [''];
+  reset();
+}
+
+function loadExample() {
+  program = [
+    'MOV AX, 10',
+    'MOV BX, 5',
+    'ADD AX, BX',
+    'MOV CX, AX',
+    'SUB AX, 3',
+    'HLT',
+  ];
+  reset();
+}
+
+/* ── Insertar desde cheatsheet ────────────────────── */
+function insertInstruction(instr) {
+  // Buscar última línea vacía o agregar al final
+  let target = -1;
+  for (let i = 0; i < program.length; i++) {
+    if (!program[i].trim()) { target = i; break; }
+  }
+  if (target >= 0) {
+    program[target] = instr;
+  } else {
+    program.push(instr);
+  }
+  renderProgram();
+  showToast('Insertado: ' + instr);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ═════════════════════════════════════════════════════
+   CONFIGURACIÓN INICIAL
+═════════════════════════════════════════════════════ */
+function applyConfig() {
+  initVals.AX    = parseInt(document.getElementById('initAX').value) || 0;
+  initVals.BX    = parseInt(document.getElementById('initBX').value) || 0;
+  initVals.CX    = parseInt(document.getElementById('initCX').value) || 0;
+  initVals.DX    = parseInt(document.getElementById('initDX').value) || 0;
+  initVals.delay = parseInt(document.getElementById('stepDelay').value) || 600;
+  reset();
+}
+
+/* ═════════════════════════════════════════════════════
+   MOTOR DE EJECUCIÓN
+═════════════════════════════════════════════════════ */
+
+/* ── Parseo de instrucción ────────────────────────── */
+function parseInstr(raw) {
+  const s = raw.trim().replace(/;.*$/, '').trim();
+  if (!s) return null;
+  const tokens = s.split(/[\s,]+/).filter(Boolean);
+  const op  = tokens[0].toUpperCase();
+  const dst = tokens[1] ? tokens[1].toUpperCase() : null;
+  const src = tokens[2] ? tokens[2].toUpperCase() : null;
+  return { op, dst, src, raw: s };
+}
+
+function resolveValue(token) {
+  if (!token) return { val: null, err: 'operando faltante' };
+  const t = token.toUpperCase();
+  if (REGS_VALID.includes(t)) return { val: state.regs[t], isReg: true, name: t };
+  const n = parseInt(token, 10);
+  if (isNaN(n)) return { val: null, err: 'operando inválido: ' + token };
+  return { val: n, isImm: true };
+}
+
+function updateFlags(result, op) {
+  state.flags.ZF = result === 0 ? 1 : 0;
+  state.flags.SF = result < 0  ? 1 : 0;
+  state.flags.CF = result > 65535 || result < -32768 ? 1 : 0;
+  state.flags.OF = result > 32767 || result < -32768 ? 1 : 0;
+}
+
+/* ── Ejecutar UNA instrucción completa ─────────────── */
+function execOne() {
+  if (state.halted || state.error) return false;
+
+  const raw = program[state.PC];
+  if (raw === undefined) {
+    logErr('Sin instrucción en posición ' + state.PC + '. Detenido.');
+    state.halted = true;
+    return false;
+  }
+
+  const instr = parseInstr(raw);
+  if (!instr || !instr.op) {
+    // Línea vacía: saltar
+    logLine('<span class="log-sep">─────</span>');
+    logLine('<span class="log-fetch log-phase">[' + state.PC + '] Línea vacía — se omite</span>');
+    state.PC++;
+    renderAll();
+    return true;
+  }
+
+  state.cycle++;
+  document.getElementById('cycleCount').textContent = 'ciclo ' + state.cycle;
+
+  // ── FETCH ────────────────────────────────────────
+  state.MAR = pcHex(state.PC);
+  state.MBR = instr.raw;
+  state.IR  = instr.raw;
+  flashPhase(0);
+  logLine('<span class="log-sep">─────────────────────────────────</span>');
+  logLine('<span class="log-fetch log-phase">[FETCH]</span>   PC=' + pcHex(state.PC) +
+          ' → MAR=' + state.MAR + ' → IR="' + instr.raw + '"');
+
+  // ── DECODE ───────────────────────────────────────
+  flashPhase(1);
+  logLine('<span class="log-decode log-phase">[DECODE]</span>  Opcode: <strong>' + instr.op + '</strong>' +
+          (instr.dst ? '  dst: ' + instr.dst : '') +
+          (instr.src ? '  src: ' + instr.src : ''));
+
+  const pcBefore = state.PC;
+  state.PC++;
+
+  // ── EXECUTE ──────────────────────────────────────
+  flashPhase(2);
+  flashPhase(3);
+
+  let result = null;
+  let writeTarget = null;
+  let writeVal    = null;
+  let cmpMode     = false;
+
+  try {
+    switch (instr.op) {
+
+      case 'HLT':
+        logLine('<span class="log-hlt">[EXECUTE]  HLT — Ejecución detenida.</span>');
+        state.halted = true;
+        flashPhase(4);
+        renderAll('hlt');
+        return false;
+
+      case 'NOP':
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  NOP — Un ciclo de reloj sin operación.');
+        flashPhase(4);
+        renderAll();
+        return true;
+
+      case 'MOV': {
+        const s = resolveValue(instr.src);
+        if (s.err) throw new Error(s.err);
+        if (!instr.dst || !REGS_VALID.includes(instr.dst)) throw new Error('destino inválido: ' + instr.dst);
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  Transferencia: ' +
+                instr.dst + ' ← ' + (s.isImm ? s.val : instr.src + '=' + s.val));
+        writeTarget = instr.dst;
+        writeVal    = s.val;
+        break;
+      }
+
+      case 'ADD': case 'SUB': case 'MUL': case 'DIV':
+      case 'AND': case 'OR':  case 'XOR': case 'CMP': {
+        const a = resolveValue(instr.dst);
+        const b = resolveValue(instr.src);
+        if (a.err) throw new Error(a.err);
+        if (b.err) throw new Error(b.err);
+        if (!REGS_VALID.includes(instr.dst)) throw new Error('destino inválido: ' + instr.dst);
+
+        let res;
+        const av = a.val, bv = b.val;
+        const opsym = { ADD:'+', SUB:'−', MUL:'×', DIV:'÷', AND:'AND', OR:'OR', XOR:'XOR', CMP:'−' };
+
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  ALU: ' +
+                av + ' ' + opsym[instr.op] + ' ' + bv);
+
+        switch(instr.op) {
+          case 'ADD': res = av + bv; break;
+          case 'SUB': case 'CMP': res = av - bv; break;
+          case 'MUL': res = av * bv; break;
+          case 'DIV':
+            if (bv === 0) throw new Error('División por cero.');
+            res = Math.trunc(av / bv);
+            break;
+          case 'AND': res = av & bv; break;
+          case 'OR':  res = av | bv; break;
+          case 'XOR': res = av ^ bv; break;
+        }
+
+        updateFlags(res, instr.op);
+        result = res;
+        if (instr.op === 'CMP') { cmpMode = true; }
+        else { writeTarget = instr.dst; writeVal = res; }
+        break;
+      }
+
+      case 'INC': {
+        if (!REGS_VALID.includes(instr.dst)) throw new Error('registro inválido: ' + instr.dst);
+        const v = state.regs[instr.dst] + 1;
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  INC: ' + instr.dst + ' + 1 = ' + v);
+        updateFlags(v);
+        writeTarget = instr.dst; writeVal = v;
+        break;
+      }
+
+      case 'DEC': {
+        if (!REGS_VALID.includes(instr.dst)) throw new Error('registro inválido: ' + instr.dst);
+        const v = state.regs[instr.dst] - 1;
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  DEC: ' + instr.dst + ' − 1 = ' + v);
+        updateFlags(v);
+        writeTarget = instr.dst; writeVal = v;
+        break;
+      }
+
+      case 'NEG': {
+        if (!REGS_VALID.includes(instr.dst)) throw new Error('registro inválido: ' + instr.dst);
+        const v = -state.regs[instr.dst];
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  NEG: 0 − ' + instr.dst + ' = ' + v);
+        updateFlags(v);
+        writeTarget = instr.dst; writeVal = v;
+        break;
+      }
+
+      case 'NOT': {
+        if (!REGS_VALID.includes(instr.dst)) throw new Error('registro inválido: ' + instr.dst);
+        const v = ~state.regs[instr.dst];
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  NOT: ~' + instr.dst + ' = ' + v);
+        writeTarget = instr.dst; writeVal = v;
+        break;
+      }
+
+      case 'SHL': {
+        if (!REGS_VALID.includes(instr.dst)) throw new Error('registro inválido: ' + instr.dst);
+        const n = parseInt(instr.src, 10);
+        if (isNaN(n)) throw new Error('SHL requiere un inmediato como segundo operando.');
+        const v = state.regs[instr.dst] << n;
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  SHL: ' + instr.dst + ' << ' + n + ' = ' + v);
+        updateFlags(v);
+        writeTarget = instr.dst; writeVal = v;
+        break;
+      }
+
+      case 'SHR': {
+        if (!REGS_VALID.includes(instr.dst)) throw new Error('registro inválido: ' + instr.dst);
+        const n = parseInt(instr.src, 10);
+        if (isNaN(n)) throw new Error('SHR requiere un inmediato como segundo operando.');
+        const v = state.regs[instr.dst] >> n;
+        logLine('<span class="log-exec log-phase">[EXECUTE]</span>  SHR: ' + instr.dst + ' >> ' + n + ' = ' + v);
+        updateFlags(v);
+        writeTarget = instr.dst; writeVal = v;
+        break;
+      }
+
+      default:
+        throw new Error('Instrucción no reconocida: ' + instr.op);
+    }
+  } catch(e) {
+    state.error = e.message;
+    logErr('ERROR en línea ' + pcBefore + ': ' + e.message);
+    renderAll('error');
+    return false;
+  }
+
+  // ── WRITE-BACK ───────────────────────────────────
+  flashPhase(4);
+  if (writeTarget !== null && writeVal !== null) {
+    const prevVal = state.regs[writeTarget];
+    state.regs[writeTarget] = writeVal;
+    logLine('<span class="log-write log-phase">[WRITE]</span>   ' + writeTarget +
+            ' = ' + writeVal + (cmpMode ? '' : '  (antes: ' + prevVal + ')'));
+  }
+  if (cmpMode) {
+    logLine('<span class="log-write log-phase">[FLAGS]</span>   ' +
+            flagsStr());
+  }
+  logLine('<span class="log-exec">   FLAGS: ' + flagsStr() + '</span>');
+
+  renderAll();
+  return true;
+}
+
+function flagsStr() {
+  const f = state.flags;
+  return 'ZF=' + f.ZF + ' CF=' + f.CF + ' SF=' + f.SF + ' OF=' + f.OF;
+}
+
+/* ═════════════════════════════════════════════════════
+   CONTROLES PÚBLICOS
+═════════════════════════════════════════════════════ */
+function step() {
+  if (state.halted || state.error) return;
+  if (state.PC >= program.length) {
+    logErr('Fin del programa sin instrucción HLT.');
+    state.halted = true;
+    renderAll('hlt');
+    return;
+  }
+  execOne();
+  updateStatusBar();
+}
+
+async function runAll() {
+  if (state.halted || state.error) return;
+  document.getElementById('btnRun').disabled  = true;
+  document.getElementById('btnStep').disabled = true;
+  state.running = true;
+  updateStatus('Ejecutando', 'run');
+
+  while (!state.halted && !state.error && state.PC < program.length) {
+    const ok = execOne();
+    updateStatusBar();
+    if (!ok) break;
+    await sleep(initVals.delay);
+  }
+
+  if (!state.halted && !state.error && state.PC >= program.length) {
+    logLine('<span class="log-hlt">   Fin del programa (sin HLT).</span>');
+    state.halted = true;
+    renderAll('hlt');
+  }
+
+  state.running = false;
+  document.getElementById('btnRun').disabled  = false;
+  document.getElementById('btnStep').disabled = false;
+  updateStatusBar();
+}
+
+function reset() {
+  clearTimeout(runTimer);
+  state = {
+    regs:    { AX: initVals.AX, BX: initVals.BX, CX: initVals.CX, DX: initVals.DX },
+    PC:      0,
+    IR:      '—',
+    MAR:     '—',
+    MBR:     '—',
+    flags:   { ZF:0, CF:0, SF:0, OF:0 },
+    running: false,
+    halted:  false,
+    cycle:   0,
+    error:   null,
+  };
+  document.getElementById('btnStep').disabled = false;
+  document.getElementById('btnRun').disabled  = false;
+  document.getElementById('cycleCount').textContent = 'ciclo 0';
+  clearAllPhases();
+  renderAll('reset');
+  updateStatusBar();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ═════════════════════════════════════════════════════
+   RENDERIZADO DE REGISTROS
+═════════════════════════════════════════════════════ */
+let prevRegVals = {};
+
+function renderAll(mode) {
+  const names = ['AX','BX','CX','DX'];
+
+  // PC
+  setReg('PC',  pcHex(state.PC));
+  setReg('IR',  state.IR  === '—' ? '—' : state.IR);
+  setReg('MAR', state.MAR === '—' ? '—' : state.MAR);
+  setReg('MBR', state.MBR === '—' ? '—' : state.MBR);
+
+  // Registros de propósito general con animación de cambio
+  names.forEach(n => {
+    const v = state.regs[n];
+    const el = document.getElementById('rv' + n);
+    const cell = document.getElementById('rc' + n);
+    if (el.textContent !== String(v)) {
+      el.textContent = v;
+      cell.classList.remove('changed');
+      void cell.offsetWidth; // reflow
+      cell.classList.add('changed');
+    }
+  });
+
+  // Flags
+  renderFlags();
+
+  // Programa
+  renderProgram();
+
+  // Fase
+  updateStatusBar(mode);
+}
+
+function setReg(name, val) {
+  const el = document.getElementById('rv' + name);
+  if (el && el.textContent !== String(val)) {
+    el.textContent = val;
+    const cell = document.getElementById('rc' + name);
+    if (cell && name !== 'PC') {
+      cell.classList.remove('changed');
+      void cell.offsetWidth;
+      cell.classList.add('changed');
+    }
+  }
+}
+
+function renderFlags() {
+  const f = state.flags;
+  const bits = { ZF:'fZF', CF:'fCF', SF:'fSF', OF:'fOF' };
+  Object.entries(bits).forEach(([flag, id]) => {
+    const el = document.getElementById(id);
+    const val = f[flag];
+    el.textContent = flag + '=' + val;
+    el.className = 'flag-bit ' + (val ? 'flag-on' : 'flag-off');
+  });
+}
+
+/* ── Indicador de fase ────────────────────────────── */
+let phaseTimer = null;
+function flashPhase(idx) {
+  clearAllPhases();
+  const el = document.getElementById('ph' + idx);
+  if (el) el.classList.add('active');
+}
+function clearAllPhases() {
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('ph' + i);
+    if (el) el.classList.remove('active','done');
+  }
+}
+function markPhaseDone() {
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('ph' + i);
+    if (el && el.classList.contains('active')) {
+      el.classList.remove('active');
+      el.classList.add('done');
+    }
+  }
+}
+
+/* ── Status bar ───────────────────────────────────── */
+function updateStatus(txt, mode) {
+  const textEl  = document.getElementById('statusText');
+  const badgeEl = document.getElementById('statusBadge');
+  const dotEl   = document.getElementById('statusDot');
+  const logDot  = document.getElementById('logDot');
+  const modes = {
+    ready: ['Listo',      'badge-ready', true,  false],
+    run:   ['Ejecutando', 'badge-run',   true,  true ],
+    hlt:   ['Detenido',   'badge-halt',  false, false],
+    error: ['Error',      'badge-error', false, false],
+    reset: ['Listo',      'badge-ready', true,  false],
+  };
+  const m = modes[mode] || modes.ready;
+  textEl.textContent  = m[0];
+  badgeEl.className   = 'status-badge ' + m[1];
+  badgeEl.textContent = m[0].toUpperCase();
+  dotEl.classList.toggle('active', m[2]);
+  if (logDot) logDot.classList.toggle('active', m[3]);
+}
+
+function updateStatusBar(mode) {
+  document.getElementById('statusPC').textContent    = pcHex(state.PC > 0 ? state.PC : 0);
+  document.getElementById('statusInstr').textContent = state.IR === '—' ? '—' : state.IR;
+  document.getElementById('statusPhase').textContent = state.halted ? 'HLT' : (state.PC > 0 ? 'Write-back' : '—');
+
+  if (state.error)        updateStatus('Error',      'error');
+  else if (state.halted)  updateStatus('Detenido',   'hlt');
+  else if (state.running) updateStatus('Ejecutando', 'run');
+  else                    updateStatus('Listo',       'ready');
+}
+
+/* ═════════════════════════════════════════════════════
+   LOG
+═════════════════════════════════════════════════════ */
+function logLine(html) {
+  const lb = document.getElementById('logBody');
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  lb.appendChild(div);
+  lb.scrollTop = lb.scrollHeight;
+  document.getElementById('logDot').classList.add('active');
+}
+
+function logErr(msg) {
+  logLine('<span class="log-err">[ERROR]   ' + msg + '</span>');
+}
+
+function clearLog() {
+  const lb = document.getElementById('logBody');
+  lb.innerHTML = '';
+  document.getElementById('logDot').classList.remove('active');
+}
+
+function toggleLog() {
+  logOpen = !logOpen;
+  const lb = document.getElementById('logBody');
+  lb.style.display = logOpen ? '' : 'none';
+}
+
+/* ═════════════════════════════════════════════════════
+   INICIO
+═════════════════════════════════════════════════════ */
+renderProgram();
+renderFlags();
+updateStatusBar('reset');
+</script>
+</body>
+</html>
