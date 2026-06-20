@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De la Instrucción al Silicio — Simulador Código / Hardware</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --g:        #5e162e;
+  --g-dark:   #3e0d1e;
+  --g-mid:    #7a2040;
+  --g-light:  #f5e8ee;
+  --g-rule:   #c85070;
+
+  --bg:       #ffffff;
+  --surface:  #faf7f8;
+  --surface2: #f3eef0;
+  --border:   #e2d8da;
+  --border2:  #c8b4ba;
+
+  --ink:      #1a1215;
+  --ink2:     #5c4850;
+  --ink3:     #8c7880;
+
+  --teal:     #0d5c52;
+  --teal-lt:  #e3f5f2;
+  --green:    #1a5c2a;
+  --green-lt: #e8f5e9;
+
+  --mono:     'JetBrains Mono', monospace;
+  --ui:       'Inter', sans-serif;
+  --display:  'Cormorant Garamond', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--ui);
+  color: var(--ink);
+  background: #efeaec;
+  -webkit-user-select: none; user-select: none;
+  min-height: 100vh;
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--g) 0%, var(--g-dark) 100%);
+  color: #fff;
+  padding: 2.2rem 2rem 2.6rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  top: -40%; right: -10%;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(255,255,255,.06), transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  margin-bottom: .5rem;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1.12;
+  max-width: 720px;
+  position: relative;
+  z-index: 1;
+}
+.hero h1 em { font-style: normal; color: #f0c8d4; }
+.hero p {
+  font-size: .95rem;
+  color: rgba(255,255,255,.78);
+  max-width: 620px;
+  margin-top: .75rem;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+.shell {
+  max-width: 1180px;
+  margin: -1.4rem auto 3rem;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.program-picker {
+  background: #fff;
+  border: 1px solid var(--border2);
+  box-shadow: 0 6px 24px rgba(94,22,46,.14);
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+.picker-label {
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding: .9rem 1.2rem;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+.picker-tabs { display: flex; flex: 1; flex-wrap: wrap; }
+.picker-tab {
+  font-family: var(--ui);
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--ink2);
+  padding: .9rem 1.1rem;
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  transition: all .15s;
+}
+.picker-tab:hover { background: var(--g-light); color: var(--g); }
+.picker-tab.active { background: var(--g); color: #fff; }
+.picker-tab .tab-sub {
+  display: block;
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 400;
+  opacity: .7;
+  margin-top: .1rem;
+}
+
+.phase-track {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--surface2);
+  border-top: 1px solid var(--border2);
+}
+.phase-track-item {
+  text-align: center;
+  padding: .55rem .3rem;
+  font-family: var(--mono);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  border-right: 1px solid var(--border);
+  transition: all .25s;
+}
+.phase-track-item:last-child { border-right: none; }
+.phase-track-item.active { background: var(--g); color: #fff; }
+.phase-track-item.done   { background: var(--green-lt); color: var(--green); }
+
+.dual-view {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0;
+  background: #fff;
+  border: 1px solid var(--border2);
+  border-top: none;
+  box-shadow: 0 10px 32px rgba(94,22,46,.1);
+  min-height: 560px;
+}
+@media (max-width: 920px) { .dual-view { grid-template-columns: 1fr; } }
+
+.code-col {
+  border-right: 2px solid var(--g);
+  display: flex;
+  flex-direction: column;
+  background: #1c1418;
+}
+.col-header {
+  padding: .75rem 1.1rem;
+  font-family: var(--mono);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.code-col .col-header { color: #f0c8d4; background: #2a1820; border-bottom: 1px solid rgba(255,255,255,.08); }
+.hw-col .col-header    { color: var(--g); background: var(--surface); border-bottom: 1px solid var(--border); }
+
+.code-lines {
+  flex: 1;
+  padding: 1rem .5rem;
+  font-family: var(--mono);
+  font-size: .92rem;
+  line-height: 2.3;
+  overflow-y: auto;
+}
+.code-line {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .15rem .8rem;
+  border-radius: 3px;
+  color: #b8a8ae;
+  transition: all .25s;
+}
+.code-line .ln-num { color: #6b5560; font-size: .72rem; min-width: 16px; text-align: right; }
+.code-line .ln-code { white-space: pre; }
+.code-line .ln-comment { color: #6b5560; font-size: .76rem; font-style: italic; margin-left: .3rem; }
+.code-line.active { background: rgba(240,200,212,.12); color: #fff; border-left: 3px solid #f0c8d4; padding-left: calc(.8rem - 3px); }
+.code-line.active .ln-num { color: #f0c8d4; font-weight: 700; }
+.code-line.done { color: #5a9e6a; opacity: .55; }
+.code-line.done .ln-num { color: #4a8a5a; }
+
+.tok-op  { color: #f0c8d4; font-weight: 700; }
+.tok-reg { color: #9ad8d0; }
+.tok-imm { color: #d8c870; }
+.code-line.active .tok-op  { color: #ffd8e4; }
+.code-line.active .tok-reg { color: #c0eee6; }
+.code-line.active .tok-imm { color: #f0e0a0; }
+
+.phase-now { border-top: 1px solid rgba(255,255,255,.08); padding: .9rem 1.1rem 1.1rem; background: #241620; }
+.phase-now-label { font-family: var(--mono); font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8c7880; margin-bottom: .45rem; }
+.phase-now-value { font-family: var(--mono); font-size: 1.05rem; font-weight: 700; color: #f0c8d4; margin-bottom: .35rem; min-height: 1.4rem; }
+.phase-now-desc  { font-size: .78rem; color: #b8a8ae; line-height: 1.55; min-height: 2.4em; }
+
+.hw-col { display: flex; flex-direction: column; background: var(--surface); }
+.hw-stage { flex: 1; position: relative; padding: 1.4rem 1.6rem; overflow: auto; }
+#hwSvg { width: 100%; height: 100%; min-height: 420px; display: block; }
+
+.hw-block { fill: #fff; stroke: var(--border2); stroke-width: 1.5; transition: all .3s ease; }
+.hw-block.lit     { fill: var(--g-light); stroke: var(--g); stroke-width: 2.5; }
+.hw-block.lit-alt { fill: var(--teal-lt); stroke: var(--teal); stroke-width: 2.5; }
+.hw-label { font-family: var(--ui); font-size: 12px; font-weight: 700; fill: var(--ink2); text-anchor: middle; }
+.hw-sub   { font-family: var(--mono); font-size: 9.5px; fill: var(--ink3); text-anchor: middle; }
+.hw-val   { font-family: var(--mono); font-size: 13px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+
+.bus-line { stroke: var(--border2); stroke-width: 2; fill: none; transition: all .3s ease; }
+.bus-line.lit  { stroke: var(--g); stroke-width: 3; }
+.bus-line.flow { stroke-dasharray: 6 4; animation: dash .6s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -20; } }
+
+.alu-icon-path { stroke: var(--ink3); stroke-width: 1.5; fill: none; }
+
+.hw-legend { display: flex; gap: 1.1rem; padding: .6rem 1.6rem .9rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: .4rem; font-family: var(--mono); font-size: .68rem; color: var(--ink3); }
+.legend-dot { width: 9px; height: 9px; border-radius: 2px; }
+.legend-dot.g  { background: var(--g); }
+.legend-dot.t  { background: var(--teal); }
+.legend-dot.gr { background: var(--border2); }
+
+.regs-strip { background: #fff; border: 1px solid var(--border2); border-top: none; display: flex; flex-wrap: wrap; }
+.reg-chip { flex: 1; min-width: 110px; padding: .7rem .9rem; border-right: 1px solid var(--border); text-align: center; transition: background .3s; }
+.reg-chip.changed { background: var(--g-light); animation: chipflash .6s ease; }
+@keyframes chipflash { 0% { background: rgba(94,22,46,.2); } 100% { background: var(--g-light); } }
+.reg-chip-name { font-family: var(--mono); font-size: .65rem; font-weight: 700; letter-spacing: .08em; color: var(--g); text-transform: uppercase; }
+.reg-chip-val  { font-family: var(--mono); font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-top: .15rem; }
+
+.controls-bar { display: flex; gap: .6rem; padding: 1.1rem 0; flex-wrap: wrap; align-items: center; }
+.ctrl-btn {
+  font-family: var(--mono); font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+  padding: .65rem 1.3rem; border: none; cursor: pointer; border-radius: 3px; transition: all .15s;
+  display: flex; align-items: center; gap: .45rem;
+}
+.ctrl-btn.primary { background: var(--g); color: #fff; }
+.ctrl-btn.primary:hover { background: var(--g-dark); }
+.ctrl-btn.primary:disabled { background: var(--border2); color: var(--ink3); cursor: not-allowed; }
+.ctrl-btn.secondary { background: #fff; color: var(--g); border: 1.5px solid var(--g); }
+.ctrl-btn.secondary:hover { background: var(--g-light); }
+.ctrl-btn.ghost { background: transparent; color: var(--ink3); border: 1.5px solid var(--border2); }
+.ctrl-btn.ghost:hover { color: var(--ink2); }
+.spacer { flex: 1; }
+.speed-control { display: flex; align-items: center; gap: .5rem; font-family: var(--mono); font-size: .68rem; color: var(--ink3); }
+.speed-control input[type="range"] { width: 90px; accent-color: var(--g); }
+
+.bridge-section { margin-top: 1.5rem; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--g); padding: 1.4rem 1.6rem; }
+.bridge-title { font-family: var(--mono); font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--g); margin-bottom: .55rem; }
+.bridge-text { font-size: .92rem; color: var(--ink2); line-height: 1.65; }
+.bridge-text strong { color: var(--ink); }
+
+.footnote { text-align: center; font-family: var(--mono); font-size: .68rem; color: var(--ink3); margin-top: 2rem; letter-spacing: .04em; }
+
+@media print { body { -webkit-user-select: text; user-select: text; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-eyebrow">Arquitectura de Computadoras · Unidad 2 · Simulador interactivo</div>
+  <h1>De la instrucción al <em>silicio</em></h1>
+  <p>Cada línea de ensamblador que escribes se convierte, ciclo a ciclo, en señales eléctricas reales dentro del procesador. Esta vista te muestra ambos mundos al mismo tiempo: el código que entiende el programador y el hardware que lo ejecuta.</p>
+</header>
+
+<div class="shell">
+
+  <div class="program-picker">
+    <span class="picker-label">Elige un programa</span>
+    <div class="picker-tabs" id="programTabs">
+      <div class="picker-tab active" data-prog="0">Suma básica<span class="tab-sub">MOV · ADD</span></div>
+      <div class="picker-tab" data-prog="1">Resta con signo<span class="tab-sub">SUB · flags</span></div>
+      <div class="picker-tab" data-prog="2">Acumulador en bucle<span class="tab-sub">ADD · INC</span></div>
+      <div class="picker-tab" data-prog="3">Comparación lógica<span class="tab-sub">AND · CMP</span></div>
+    </div>
+  </div>
+
+  <div class="phase-track" id="phaseTrack">
+    <div class="phase-track-item" id="pt0">Fetch</div>
+    <div class="phase-track-item" id="pt1">Decode</div>
+    <div class="phase-track-item" id="pt2">Fetch Ops</div>
+    <div class="phase-track-item" id="pt3">Execute</div>
+    <div class="phase-track-item" id="pt4">Write-back</div>
+  </div>
+
+  <div class="dual-view">
+
+    <div class="code-col">
+      <div class="col-header"><span>Ensamblador</span><span id="codeLangTag">x86-like</span></div>
+      <div class="code-lines" id="codeLines"></div>
+      <div class="phase-now">
+        <div class="phase-now-label">Qué está ocurriendo ahora</div>
+        <div class="phase-now-value" id="phaseNowValue">Presiona "Siguiente paso" para iniciar</div>
+        <div class="phase-now-desc" id="phaseNowDesc">El diagrama de hardware a la derecha se sincronizará con cada fase del ciclo de instrucción.</div>
+      </div>
+    </div>
+
+    <div class="hw-col">
+      <div class="col-header"><span>Diagrama de hardware</span><span id="hwCycleTag">ciclo 0</span></div>
+      <div class="hw-stage">
+        <svg id="hwSvg" viewBox="0 0 520 460" xmlns="http://www.w3.org/2000/svg">
+
+          <rect class="hw-block" id="blk-ram" x="20" y="20" width="150" height="60" rx="3"/>
+          <text class="hw-label" x="95" y="42">Memoria RAM</text>
+          <text class="hw-sub" x="95" y="58">Programa e instrucciones</text>
+          <text class="hw-val" id="val-ram" x="95" y="74">—</text>
+
+          <path class="bus-line" id="bus-addr1" d="M 95 80 L 95 110 L 95 130" />
+          <text class="hw-sub" x="60" y="100">dirección</text>
+
+          <rect x="20" y="130" width="480" height="310" rx="4" fill="none" stroke="#5e162e" stroke-width="2" stroke-dasharray="2 3"/>
+          <text x="36" y="146" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#5e162e" letter-spacing="1">CPU</text>
+
+          <rect class="hw-block" id="blk-PC" x="36" y="155" width="80" height="46" rx="3"/>
+          <text class="hw-label" x="76" y="174">PC</text>
+          <text class="hw-val" id="val-PC" x="76" y="192">0x0000</text>
+
+          <rect class="hw-block" id="blk-MAR" x="36" y="212" width="80" height="46" rx="3"/>
+          <text class="hw-label" x="76" y="231">MAR</text>
+          <text class="hw-val" id="val-MAR" x="76" y="249">—</text>
+
+          <rect class="hw-block" id="blk-MBR" x="36" y="269" width="80" height="46" rx="3"/>
+          <text class="hw-label" x="76" y="288">MBR</text>
+          <text class="hw-val" id="val-MBR" x="76" y="306" font-size="10">—</text>
+
+          <path class="bus-line" id="bus-addr2" d="M 36 235 L 10 235 L 10 50 L 20 50" />
+          <path class="bus-line" id="bus-data1" d="M 20 65 L 8 65 L 8 292 L 36 292" />
+
+          <rect class="hw-block" id="blk-IR" x="150" y="155" width="110" height="46" rx="3"/>
+          <text class="hw-label" x="205" y="174">IR — Instruction Register</text>
+          <text class="hw-val" id="val-IR" x="205" y="192" font-size="11">—</text>
+
+          <path class="bus-line" id="bus-ir" d="M 116 292 L 138 292 L 138 178 L 150 178" />
+
+          <rect class="hw-block" id="blk-UC" x="150" y="212" width="110" height="103" rx="3"/>
+          <text class="hw-label" x="205" y="234">Unidad de</text>
+          <text class="hw-label" x="205" y="248">Control</text>
+          <text class="hw-sub" id="val-UC" x="205" y="270">Esperando instrucción</text>
+          <g id="uc-icon" transform="translate(205,290)">
+            <circle class="alu-icon-path" r="11"/>
+            <circle class="alu-icon-path" r="4"/>
+          </g>
+
+          <path class="bus-line" id="bus-decode" d="M 205 201 L 205 212" />
+
+          <polygon class="hw-block" id="blk-ALU" points="295,160 365,160 380,200 365,240 295,240 280,200" />
+          <text class="hw-label" x="330" y="195">ALU</text>
+          <text class="hw-sub" x="330" y="210">Operación</text>
+          <text class="hw-val" id="val-ALU" x="330" y="226" font-size="10.5">—</text>
+
+          <path class="bus-line" id="bus-control" d="M 260 250 L 280 250 L 280 220" />
+          <path class="bus-line" id="bus-op1" d="M 270 295 L 270 350 L 290 350 L 290 220" />
+
+          <g id="regBank">
+            <rect class="hw-block" id="blk-AX" x="295" y="270" width="70" height="40" rx="3"/>
+            <text class="hw-label" x="330" y="288" font-size="11">AX</text>
+            <text class="hw-val" id="val-AX" x="330" y="304" font-size="13">0</text>
+
+            <rect class="hw-block" id="blk-BX" x="375" y="270" width="70" height="40" rx="3"/>
+            <text class="hw-label" x="410" y="288" font-size="11">BX</text>
+            <text class="hw-val" id="val-BX" x="410" y="304" font-size="13">0</text>
+
+            <rect class="hw-block" id="blk-CX" x="295" y="318" width="70" height="40" rx="3"/>
+            <text class="hw-label" x="330" y="336" font-size="11">CX</text>
+            <text class="hw-val" id="val-CX" x="330" y="352" font-size="13">0</text>
+
+            <rect class="hw-block" id="blk-DX" x="375" y="318" width="70" height="40" rx="3"/>
+            <text class="hw-label" x="410" y="336" font-size="11">DX</text>
+            <text class="hw-val" id="val-DX" x="410" y="352" font-size="13">0</text>
+          </g>
+
+          <path class="bus-line" id="bus-result" d="M 365 220 L 460 220 L 460 290 L 445 290" />
+
+          <rect class="hw-block" id="blk-FLAGS" x="295" y="372" width="150" height="58" rx="3"/>
+          <text class="hw-label" x="370" y="390">Registro FLAGS</text>
+          <text class="hw-val" id="val-FLAGS" x="370" y="408" font-size="10.5">ZF=0 CF=0 SF=0 OF=0</text>
+
+          <path class="bus-line" id="bus-flags" d="M 345 240 L 345 372" />
+          <path class="bus-line" id="bus-wb" d="M 260 280 L 270 280" />
+
+        </svg>
+      </div>
+      <div class="hw-legend">
+        <div class="legend-item"><span class="legend-dot g"></span> Bus / componente activo</div>
+        <div class="legend-item"><span class="legend-dot t"></span> Decodificación</div>
+        <div class="legend-item"><span class="legend-dot gr"></span> Inactivo</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="regs-strip">
+    <div class="reg-chip" id="chip-PC"><div class="reg-chip-name">PC</div><div class="reg-chip-val" id="chipv-PC">0x0000</div></div>
+    <div class="reg-chip" id="chip-IR"><div class="reg-chip-name">IR</div><div class="reg-chip-val" id="chipv-IR">—</div></div>
+    <div class="reg-chip" id="chip-AX"><div class="reg-chip-name">AX</div><div class="reg-chip-val" id="chipv-AX">0</div></div>
+    <div class="reg-chip" id="chip-BX"><div class="reg-chip-name">BX</div><div class="reg-chip-val" id="chipv-BX">0</div></div>
+    <div class="reg-chip" id="chip-CX"><div class="reg-chip-name">CX</div><div class="reg-chip-val" id="chipv-CX">0</div></div>
+    <div class="reg-chip" id="chip-DX"><div class="reg-chip-name">DX</div><div class="reg-chip-val" id="chipv-DX">0</div></div>
+    <div class="reg-chip" id="chip-FLAGS"><div class="reg-chip-name">Flags activos</div><div class="reg-chip-val" id="chipv-FLAGS">ninguno</div></div>
+  </div>
+
+  <div class="controls-bar">
+    <button class="ctrl-btn primary" id="btnStep" onclick="stepSim()">Siguiente paso</button>
+    <button class="ctrl-btn secondary" id="btnPlay" onclick="playSim()">Reproducir automático</button>
+    <button class="ctrl-btn ghost" onclick="resetSim()">Reiniciar</button>
+    <div class="spacer"></div>
+    <div class="speed-control">
+      <span>Velocidad</span>
+      <input type="range" id="speedRange" min="400" max="2200" value="1100" step="100">
+    </div>
+  </div>
+
+  <div class="bridge-section">
+    <div class="bridge-title">La conexión que debes observar</div>
+    <p class="bridge-text" id="bridgeText"></p>
+  </div>
+
+  <p class="footnote">IEDEP · Arquitectura de Computadoras · Simulador código–hardware · Unidad 2</p>
+
+</div>
+
+<script>
+const PROGRAMS = [
+  {
+    name: 'Suma básica',
+    bridge: 'Cuando ejecutas <strong>MOV AX, 8</strong>, no es una abstracción: la Unidad de Control activa físicamente el bus de direcciones para localizar la instrucción en RAM, el bus de datos transporta los bytes hasta el MBR, y finalmente una señal de escritura habilita el registro AX para recibir el valor. Después, <strong>ADD AX, BX</strong> obliga a la ALU a tomar ambos operandos directamente del banco de registros —sin tocar la memoria— y el resultado regresa por un bus distinto hacia AX.',
+    instrs: [
+      { op:'MOV', dst:'AX', src:'8'  },
+      { op:'MOV', dst:'BX', src:'5'  },
+      { op:'ADD', dst:'AX', src:'BX' },
+      { op:'HLT' },
+    ],
+  },
+  {
+    name: 'Resta con signo',
+    bridge: '<strong>SUB AX, BX</strong> activa la misma ALU que usa ADD, pero con la señal de control de resta habilitada. Observa cómo el registro FLAGS se ilumina al mismo tiempo que el resultado: la ALU no solo calcula el valor, también genera en paralelo las banderas SF y ZF que el hardware usará después para decisiones condicionales.',
+    instrs: [
+      { op:'MOV', dst:'AX', src:'4'  },
+      { op:'MOV', dst:'BX', src:'9'  },
+      { op:'SUB', dst:'AX', src:'BX' },
+      { op:'HLT' },
+    ],
+  },
+  {
+    name: 'Acumulador en bucle',
+    bridge: 'Observa que <strong>INC CX</strong> es una operación de la ALU igual que ADD, solo que con un operando fijo de valor 1 ya integrado en el circuito —por eso es más rápida que escribir ADD CX, 1. Cada vuelta del "bucle" en este programa repite exactamente la misma ruta física por el bus: Fetch desde una dirección distinta, pero el mismo camino eléctrico dentro de la CPU.',
+    instrs: [
+      { op:'MOV', dst:'CX', src:'0'  },
+      { op:'MOV', dst:'AX', src:'3'  },
+      { op:'ADD', dst:'CX', src:'AX' },
+      { op:'INC', dst:'CX' },
+      { op:'HLT' },
+    ],
+  },
+  {
+    name: 'Comparación lógica',
+    bridge: '<strong>AND AX, BX</strong> demuestra que la ALU no es solo una calculadora aritmética: el mismo circuito físico que suma también compara bit a bit. <strong>CMP</strong> usa exactamente la misma ruta de hardware que SUB, con una diferencia crucial: la señal de write-back hacia el registro destino se desactiva. El resultado nunca llega a AX; solo las FLAGS se actualizan. Es la base de toda decisión condicional en software.',
+    instrs: [
+      { op:'MOV', dst:'AX', src:'12' },
+      { op:'MOV', dst:'BX', src:'10' },
+      { op:'AND', dst:'AX', src:'BX' },
+      { op:'CMP', dst:'AX', src:'BX' },
+      { op:'HLT' },
+    ],
+  },
+];
+
+let currentProg = 0;
+let regs = { AX:0, BX:0, CX:0, DX:0 };
+let flags = { ZF:0, CF:0, SF:0, OF:0 };
+let pc = 0;
+let ir = '—';
+let mar = '—';
+let mbr = '—';
+let halted = false;
+let phaseIdx = -1;
+let playing = false;
+let playTimer = null;
+let pendingWrite = null;
+
+function fmtInstr(ins) {
+  if (ins.op === 'HLT') return 'HLT';
+  if (ins.op === 'INC' || ins.op === 'DEC') return `${ins.op} ${ins.dst}`;
+  return `${ins.op} ${ins.dst}, ${ins.src}`;
+}
+
+function commentFor(ins) {
+  const map = {
+    MOV: `${ins.dst} ← ${ins.src}`,
+    ADD: `${ins.dst} ← ${ins.dst} + ${ins.src}`,
+    SUB: `${ins.dst} ← ${ins.dst} − ${ins.src}`,
+    AND: `${ins.dst} ← ${ins.dst} AND ${ins.src}`,
+    CMP: `compara ${ins.dst} y ${ins.src}`,
+    INC: `${ins.dst} ← ${ins.dst} + 1`,
+    DEC: `${ins.dst} ← ${ins.dst} − 1`,
+    HLT: 'detener ejecución',
+  };
+  return map[ins.op] || '';
+}
+
+function renderCode() {
+  const prog = PROGRAMS[currentProg];
+  const wrap = document.getElementById('codeLines');
+  wrap.innerHTML = '';
+  prog.instrs.forEach((ins, i) => {
+    const div = document.createElement('div');
+    div.className = 'code-line';
+    div.id = 'cl-' + i;
+    if (i < pc) div.classList.add('done');
+    if (i === pc && !halted) div.classList.add('active');
+
+    const text = fmtInstr(ins);
+    const tokens = text.split(/(\s+|,)/).map(t => {
+      if (['MOV','ADD','SUB','AND','CMP','INC','DEC','HLT'].includes(t)) return `<span class="tok-op">${t}</span>`;
+      if (['AX','BX','CX','DX'].includes(t)) return `<span class="tok-reg">${t}</span>`;
+      if (/^\d+$/.test(t)) return `<span class="tok-imm">${t}</span>`;
+      return t;
+    }).join('');
+
+    div.innerHTML = `<span class="ln-num">${i}</span><span class="ln-code">${tokens}</span><span class="ln-comment">; ${commentFor(ins)}</span>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('codeLangTag').textContent = prog.name;
+  document.getElementById('bridgeText').innerHTML = prog.bridge;
+}
+
+function pcHex(n) { return '0x' + (n*2).toString(16).toUpperCase().padStart(4,'0'); }
+
+function setVal(svgId, val, chipPrefix) {
+  const el = document.getElementById('val-' + svgId);
+  if (el && el.textContent !== String(val)) el.textContent = val;
+  if (chipPrefix) {
+    const chipEl = document.getElementById('chipv-' + svgId);
+    const chipBox = document.getElementById('chip-' + svgId);
+    if (chipEl && chipEl.textContent !== String(val)) {
+      chipEl.textContent = val;
+      if (chipBox) { chipBox.classList.remove('changed'); void chipBox.offsetWidth; chipBox.classList.add('changed'); }
+    }
+  }
+}
+
+function renderRegs() {
+  setVal('PC', pcHex(pc), true);
+  setVal('IR', ir, true);
+  setVal('MAR', mar);
+  setVal('MBR', mbr);
+  ['AX','BX','CX','DX'].forEach(r => setVal(r, regs[r], true));
+
+  const activeFlags = Object.entries(flags).filter(([k,v]) => v === 1).map(([k]) => k);
+  document.getElementById('val-FLAGS').textContent =
+    'ZF=' + flags.ZF + ' CF=' + flags.CF + ' SF=' + flags.SF + ' OF=' + flags.OF;
+  document.getElementById('chipv-FLAGS').textContent = activeFlags.length ? activeFlags.join(', ') : 'ninguno';
+
+  document.getElementById('hwCycleTag').textContent = 'ciclo ' + (pc + (phaseIdx>=0?1:0));
+}
+
+const ALL_BLOCKS = ['blk-ram','blk-PC','blk-MAR','blk-MBR','blk-IR','blk-UC','blk-ALU','blk-AX','blk-BX','blk-CX','blk-DX','blk-FLAGS'];
+const ALL_BUSES  = ['bus-addr1','bus-addr2','bus-data1','bus-ir','bus-decode','bus-control','bus-op1','bus-result','bus-flags','bus-wb'];
+
+function clearLight() {
+  ALL_BLOCKS.forEach(id => { const e=document.getElementById(id); if(e) e.classList.remove('lit','lit-alt'); });
+  ALL_BUSES.forEach(id => { const e=document.getElementById(id); if(e) e.classList.remove('lit','flow'); });
+}
+function light(ids, alt) {
+  ids.forEach(id => { const e = document.getElementById(id); if (e) e.classList.add(alt ? 'lit-alt' : 'lit'); });
+}
+function litBus(ids) { ids.forEach(id => { const e=document.getElementById(id); if(e){ e.classList.add('lit','flow'); } }); }
+
+function setPhaseTrack(idx) {
+  for (let i=0;i<5;i++) {
+    const el = document.getElementById('pt'+i);
+    el.classList.remove('active','done');
+    if (i < idx) el.classList.add('done');
+    if (i === idx) el.classList.add('active');
+  }
+}
+
+function currentInstr() { return PROGRAMS[currentProg].instrs[pc]; }
+
+function doFetch() {
+  const ins = currentInstr();
+  mar = pcHex(pc);
+  mbr = fmtInstr(ins);
+  ir  = fmtInstr(ins);
+  clearLight();
+  light(['blk-ram','blk-PC','blk-MAR','blk-MBR','blk-IR']);
+  litBus(['bus-addr1','bus-addr2','bus-data1','bus-ir']);
+  setPhaseTrack(0);
+  document.getElementById('phaseNowValue').textContent = 'FETCH — Búsqueda de instrucción';
+  document.getElementById('phaseNowDesc').textContent =
+    `El PC apunta a ${pcHex(pc)}. La UC copia esa dirección al MAR, la RAM responde por el bus de datos, el byte llega al MBR y se copia al IR. El PC avanzará al terminar.`;
+}
+
+function doDecode() {
+  const ins = currentInstr();
+  clearLight();
+  light(['blk-IR','blk-UC'], true);
+  litBus(['bus-decode']);
+  setPhaseTrack(1);
+  document.getElementById('val-UC').textContent = 'Decodificando: ' + ins.op;
+  document.getElementById('phaseNowValue').textContent = 'DECODE — Decodificación';
+  document.getElementById('phaseNowDesc').textContent =
+    `La Unidad de Control analiza el contenido del IR ("${fmtInstr(ins)}") e identifica el opcode ${ins.op}. Determina qué señales internas deberá activar y qué registros participarán.`;
+}
+
+function doFetchOps() {
+  const ins = currentInstr();
+  clearLight();
+  light(['blk-UC'], true);
+  if (ins.op !== 'HLT' && ins.op !== 'INC' && ins.op !== 'DEC') {
+    light(['blk-AX','blk-BX','blk-CX','blk-DX'].filter(id => id === 'blk-'+ins.dst || id === 'blk-'+ins.src));
+  } else if (ins.dst) {
+    light(['blk-'+ins.dst]);
+  }
+  litBus(['bus-op1']);
+  setPhaseTrack(2);
+  document.getElementById('phaseNowValue').textContent = 'FETCH OPERANDS — Obtención de operandos';
+
+  let desc;
+  if (ins.op === 'MOV' && !['AX','BX','CX','DX'].includes(ins.src)) {
+    desc = `El operando fuente es un valor inmediato (${ins.src}); viaja codificado dentro de la propia instrucción, sin necesidad de leer ningún registro adicional.`;
+  } else if (ins.op === 'HLT') {
+    desc = 'HLT no requiere operandos: es una señal de control pura que detiene el reloj del procesador.';
+  } else {
+    desc = `La ALU necesita los valores actuales de los registros involucrados. Se leen directamente del banco de registros, sin tocar la memoria RAM — por eso esta fase es prácticamente instantánea.`;
+  }
+  document.getElementById('phaseNowDesc').textContent = desc;
+}
+
+function resolveOperand(token) {
+  if (token === undefined) return null;
+  if (['AX','BX','CX','DX'].includes(token)) return regs[token];
+  return parseInt(token, 10);
+}
+
+function doExecute() {
+  const ins = currentInstr();
+  clearLight();
+  let aluLabel = '—';
+  pendingWrite = null;
+
+  if (ins.op === 'HLT') {
+    light(['blk-UC'], true);
+    document.getElementById('phaseNowValue').textContent = 'EXECUTE — Detener';
+    document.getElementById('phaseNowDesc').textContent = 'La Unidad de Control deja de generar pulsos de Fetch. El procesador permanece en este estado hasta una señal externa (reinicio o interrupción).';
+    setPhaseTrack(3);
+    return;
+  }
+
+  light(['blk-ALU']);
+  litBus(['bus-control']);
+
+  const a = resolveOperand(ins.dst);
+  const b = resolveOperand(ins.src);
+  let result;
+
+  switch (ins.op) {
+    case 'MOV': result = b; aluLabel = `${ins.dst} ← ${b}`; pendingWrite = { reg: ins.dst, val: b }; break;
+    case 'ADD': result = a + b; aluLabel = `${a} + ${b} = ${result}`; pendingWrite = { reg: ins.dst, val: result }; break;
+    case 'SUB': result = a - b; aluLabel = `${a} − ${b} = ${result}`; pendingWrite = { reg: ins.dst, val: result }; break;
+    case 'AND': result = a & b; aluLabel = `${a} AND ${b} = ${result}`; pendingWrite = { reg: ins.dst, val: result }; break;
+    case 'CMP': result = a - b; aluLabel = `${a} − ${b} = ${result}  (no se escribe)`; pendingWrite = null; break;
+    case 'INC': result = regs[ins.dst] + 1; aluLabel = `${ins.dst} + 1 = ${result}`; pendingWrite = { reg: ins.dst, val: result }; break;
+    case 'DEC': result = regs[ins.dst] - 1; aluLabel = `${ins.dst} − 1 = ${result}`; pendingWrite = { reg: ins.dst, val: result }; break;
+  }
+
+  if (ins.op !== 'MOV') {
+    flags.ZF = result === 0 ? 1 : 0;
+    flags.SF = result < 0  ? 1 : 0;
+    flags.CF = result > 65535 ? 1 : 0;
+    flags.OF = (result > 32767 || result < -32768) ? 1 : 0;
+    light(['blk-FLAGS'], true);
+    litBus(['bus-flags']);
+  }
+
+  document.getElementById('val-ALU').textContent = aluLabel;
+  setPhaseTrack(3);
+  document.getElementById('phaseNowValue').textContent = 'EXECUTE — Operación en la ALU';
+  document.getElementById('phaseNowDesc').textContent =
+    `La ALU recibe los operandos y la señal de control de la UC (qué operación realizar). El resultado se calcula en este mismo ciclo: ${aluLabel}.` +
+    (ins.op !== 'MOV' ? ' Las banderas del registro FLAGS se actualizan en paralelo.' : '');
+
+  renderRegs();
+}
+
+function doWriteback() {
+  const ins = currentInstr();
+  clearLight();
+  setPhaseTrack(4);
+
+  if (ins.op === 'HLT') {
+    document.getElementById('phaseNowValue').textContent = 'WRITE-BACK — No aplica';
+    document.getElementById('phaseNowDesc').textContent = 'HLT no genera resultado, por lo que no hay escritura. El programa ha finalizado.';
+    halted = true;
+    renderCode();
+    return;
+  }
+
+  if (pendingWrite) {
+    light(['blk-ALU']);
+    light(['blk-'+pendingWrite.reg]);
+    litBus(['bus-result']);
+    regs[pendingWrite.reg] = pendingWrite.val;
+    document.getElementById('phaseNowValue').textContent = 'WRITE-BACK — Escritura del resultado';
+    document.getElementById('phaseNowDesc').textContent =
+      `El resultado calculado por la ALU viaja por el bus interno de resultados y se escribe en ${pendingWrite.reg}. El registro pasa a valer ${pendingWrite.val}.`;
+  } else {
+    light(['blk-FLAGS'], true);
+    document.getElementById('phaseNowValue').textContent = 'WRITE-BACK — Solo actualización de FLAGS';
+    document.getElementById('phaseNowDesc').textContent =
+      'Esta instrucción (CMP) calcula un resultado únicamente para actualizar las banderas de estado. La señal de escritura hacia el registro destino permanece desactivada: el valor de los registros no cambia.';
+  }
+
+  renderRegs();
+
+  pc++;
+  if (pc >= PROGRAMS[currentProg].instrs.length) halted = true;
+  renderCode();
+}
+
+const PHASE_FNS = [doFetch, doDecode, doFetchOps, doExecute, doWriteback];
+
+function stepSim() {
+  if (halted) return;
+  phaseIdx = (phaseIdx + 1) % 5;
+  PHASE_FNS[phaseIdx]();
+  renderRegs();
+  document.getElementById('btnStep').disabled = halted;
+  document.getElementById('btnPlay').disabled = halted;
+}
+
+function playSim() {
+  if (halted || playing) return;
+  playing = true;
+  const btn = document.getElementById('btnPlay');
+  btn.textContent = 'Pausar';
+  btn.onclick = pauseSim;
+  tickPlay();
+}
+function tickPlay() {
+  if (halted || !playing) { stopPlayUI(); return; }
+  stepSim();
+  if (halted) { stopPlayUI(); return; }
+  const speed = parseInt(document.getElementById('speedRange').value, 10);
+  playTimer = setTimeout(tickPlay, speed);
+}
+function pauseSim() { playing = false; clearTimeout(playTimer); stopPlayUI(); }
+function stopPlayUI() {
+  playing = false;
+  clearTimeout(playTimer);
+  const btn = document.getElementById('btnPlay');
+  btn.textContent = 'Reproducir automático';
+  btn.onclick = playSim;
+}
+
+function resetSim() {
+  pauseSim();
+  regs = { AX:0, BX:0, CX:0, DX:0 };
+  flags = { ZF:0, CF:0, SF:0, OF:0 };
+  pc = 0; ir = '—'; mar = '—'; mbr = '—';
+  halted = false; phaseIdx = -1; pendingWrite = null;
+  clearLight();
+  setPhaseTrack(-1);
+  document.getElementById('val-ALU').textContent = '—';
+  document.getElementById('val-UC').textContent = 'Esperando instrucción';
+  document.getElementById('phaseNowValue').textContent = 'Presiona "Siguiente paso" para iniciar';
+  document.getElementById('phaseNowDesc').textContent = 'El diagrama de hardware a la derecha se sincronizará con cada fase del ciclo de instrucción.';
+  document.getElementById('btnStep').disabled = false;
+  document.getElementById('btnPlay').disabled = false;
+  renderCode();
+  renderRegs();
+}
+
+document.getElementById('programTabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.picker-tab');
+  if (!tab) return;
+  document.querySelectorAll('.picker-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentProg = parseInt(tab.dataset.prog, 10);
+  resetSim();
+});
+
+renderCode();
+renderRegs();
+setPhaseTrack(-1);
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+</script>
+</body>
+</html>
