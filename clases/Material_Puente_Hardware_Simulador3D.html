@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Del Hardware Virtual al Hardware Real | Arquitectura de Computadoras</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="plantillas/base.css">
+
+<style>
+
+/* ── Componentes visuales del simulador ───────── */
+.componente-card {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  background: white;
+}
+@media (max-width: 640px) {
+  .componente-card { grid-template-columns: 1fr; }
+}
+
+.componente-visual {
+  background: var(--guinda);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  gap: .6rem;
+  min-height: 140px;
+}
+.componente-icono {
+  font-family: var(--font-mono);
+  font-size: 2.8rem;
+  line-height: 1;
+  color: rgba(255,255,255,.85);
+  letter-spacing: -.02em;
+}
+.componente-nombre-visual {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: rgba(255,255,255,.7);
+  text-align: center;
+}
+.componente-info {
+  padding: 1.1rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: .5rem;
+}
+.componente-nombre {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--guinda);
+  line-height: 1.1;
+}
+.componente-rol {
+  font-size: .92rem;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.componente-dato {
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  color: var(--ink-secondary);
+  background: var(--surface);
+  padding: .3rem .7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  display: inline-block;
+  margin-top: .15rem;
+}
+.componente-conexion {
+  font-size: .82rem;
+  color: var(--guinda-dark);
+  font-style: italic;
+  border-top: 1px solid var(--border);
+  padding-top: .5rem;
+  margin-top: .2rem;
+}
+
+/* ── Pasos del simulador ──────────────────────── */
+.paso-sim {
+  display: flex;
+  gap: 1.1rem;
+  align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.paso-sim:last-child { border-bottom: none; }
+
+.paso-num-grande {
+  min-width: 48px;
+  height: 48px;
+  background: var(--guinda);
+  color: white;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.paso-contenido h4 {
+  font-family: var(--font-ui);
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: .3rem;
+}
+.paso-contenido p {
+  font-size: .9rem;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+  margin-bottom: .3rem;
+}
+.paso-contenido .observa {
+  font-size: .82rem;
+  color: var(--guinda);
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* ── Actividad de evaluación ──────────────────── */
+.eval-section {
+  background: var(--off-white);
+  border: 2px solid var(--guinda);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: 3rem;
+}
+.eval-header {
+  background: var(--guinda);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.eval-header h2 {
+  color: white;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  margin: 0;
+}
+.eval-pts-badge {
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  font-weight: 700;
+  background: rgba(255,255,255,.2);
+  padding: .25rem .7rem;
+  border-radius: 99px;
+  letter-spacing: .05em;
+}
+.eval-body { padding: 1.5rem; }
+.eval-instruccion {
+  background: white;
+  border-left: 3px solid var(--guinda-rule);
+  padding: .85rem 1.1rem;
+  font-size: .9rem;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* Pregunta tipo ficha de observación */
+.ficha {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  background: white;
+}
+.ficha-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: .6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.ficha-num {
+  font-family: var(--font-ui);
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: white;
+  background: var(--guinda);
+  padding: .15rem .6rem;
+  border-radius: 99px;
+}
+.ficha-titulo {
+  font-family: var(--font-ui);
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.ficha-pts {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--ink-muted);
+}
+.ficha-body { padding: .9rem 1rem 1rem; }
+.ficha-body p {
+  font-size: .9rem;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: .6rem;
+}
+
+/* Campos de respuesta */
+.campo-label {
+  font-family: var(--font-ui);
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--guinda);
+  display: block;
+  margin-bottom: .25rem;
+}
+.campo-input {
+  width: 100%;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: .55rem .85rem;
+  font-family: var(--font-ui);
+  font-size: .93rem;
+  color: var(--ink);
+  background: var(--off-white);
+  outline: none;
+  resize: vertical;
+  transition: border-color .15s;
+  -webkit-user-select: text;
+  user-select: text;
+  margin-bottom: .85rem;
+}
+.campo-input:focus { border-color: var(--guinda); background: white; }
+.campo-input.linea { min-height: 2.4rem; resize: none; }
+.campo-input.parrafo { min-height: 5.5rem; }
+
+/* Tabla de identificación */
+.id-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+  margin-bottom: .75rem;
+}
+.id-table th {
+  background: var(--guinda);
+  color: white;
+  padding: .5rem .85rem;
+  font-family: var(--font-ui);
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-align: left;
+}
+.id-table td {
+  padding: .5rem .85rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.id-table tr:nth-child(even) td { background: var(--surface); }
+.id-table td input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid var(--border-strong);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: .88rem;
+  color: var(--ink);
+  outline: none;
+  padding: .15rem 0;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.id-table td input:focus { border-bottom-color: var(--guinda); }
+.id-table td .comp-fixed { font-family: var(--font-mono); color: var(--guinda-dark); font-weight: 600; }
+
+/* Datos del alumno */
+.datos-alumno {
+  background: white;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--guinda);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem 1.5rem;
+}
+@media (max-width: 600px) { .datos-alumno { grid-template-columns: 1fr; } }
+.dato-campo { display: flex; flex-direction: column; gap: .2rem; }
+.dato-campo.full { grid-column: 1 / -1; }
+.dato-label {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-muted);
+}
+.dato-input {
+  border: none;
+  border-bottom: 1.5px solid var(--border-strong);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: .95rem;
+  color: var(--ink);
+  padding: .3rem 0;
+  outline: none;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.dato-input:focus { border-bottom-color: var(--guinda); }
+
+/* Botón imprimir */
+.print-bar {
+  text-align: center;
+  padding: 1.5rem 0 .5rem;
+}
+.btn-print {
+  font-family: var(--font-ui);
+  font-size: .9rem;
+  font-weight: 600;
+  padding: .75rem 2.5rem;
+  background: var(--guinda);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background .15s;
+  letter-spacing: .03em;
+}
+.btn-print:hover { background: var(--guinda-dark); }
+
+/* Mapa de conexiones visual */
+.conexiones-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: .6rem;
+  margin: 1rem 0 1.5rem;
+}
+.cone-box {
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: .7rem .9rem;
+  background: white;
+  text-align: center;
+}
+.cone-box .cone-top {
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--guinda);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.cone-box .cone-arrow {
+  font-size: 1rem;
+  color: var(--border-strong);
+  margin: .2rem 0;
+}
+.cone-box .cone-bot {
+  font-size: .8rem;
+  color: var(--ink-secondary);
+  line-height: 1.4;
+}
+
+@media print {
+  body { -webkit-user-select: text; user-select: text; }
+  .print-bar { display: none; }
+  .no-print { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo-wrap">
+    <img src="plantillas/imagen1.png" alt="Logo principal IEDEP">
+  </div>
+  <div class="header-text">
+    <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+    <span class="doc-title">Arquitectura de Computadoras &nbsp;|&nbsp; Unidad 2 &nbsp;|&nbsp; Sesión práctica</span>
+  </div>
+  <div class="logo-wrap" style="margin-left:auto;">
+    <img src="plantillas/imagen2.png" alt="Logo secundario" style="height:48px; opacity:.85;">
+  </div>
+</header>
+
+<div class="class-hero">
+  <span class="class-label">Licenciatura en Sistemas Computacionales &nbsp;·&nbsp; 2do Cuatrimestre</span>
+  <h1>Del hardware virtual al hardware real</h1>
+  <span class="class-subtitle">
+    Todo lo que estudiamos sobre la CPU en papel y en el simulador de código existe físicamente.
+    Hoy lo vas a armar con tus manos — aunque sea en 3D.
+  </span>
+  <div class="meta-row">
+    <div class="meta-item">Herramienta <span>Cisco 3D PC Assembly</span></div>
+    <div class="meta-item">Modos <span>Learn + Test</span></div>
+    <div class="meta-item">Unidad <span>2 de 4</span></div>
+    <div class="meta-item">Tipo de sesión <span>Práctica</span></div>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- ══ PUENTE CONCEPTUAL ══════════════════════════ -->
+  <div class="section">
+    <span class="section-label">El puente</span>
+    <h2 class="section-title">¿Por qué pasar del diagrama al simulador?</h2>
+
+    <p>
+      En las clases anteriores estudiamos la CPU desde adentro: sus registros, su ciclo de instrucción,
+      sus operaciones. Vimos la ALU, la Unidad de Control, el PC, el IR. Pero todo eso ocurre dentro de
+      un chip que a su vez vive dentro de una caja llena de piezas que alguien tuvo que ensamblar.
+    </p>
+    <p>
+      Hoy la pregunta cambia: ya no es <em>¿cómo funciona la CPU por dentro?</em>, sino
+      <em>¿dónde está la CPU en el contexto de la computadora completa?</em> ¿Cómo se conecta con
+      la memoria RAM que tanto mencionamos? ¿Dónde vive físicamente el bus del sistema? ¿Qué otros
+      componentes necesita una computadora para funcionar?
+    </p>
+
+    <div class="callout note">
+      <p>
+        El simulador 3D de Cisco no enseña programación ni ensamblador. Enseña algo igualmente
+        importante: <strong>la relación física entre los componentes</strong>. Cada pieza que coloques
+        hoy en el simulador corresponde a un concepto que ya estudiaste. Esta sesión es el puente entre
+        la teoría y el mundo real del hardware.
+      </p>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ══ COMPONENTES ═══════════════════════════════ -->
+  <div class="section">
+    <span class="section-label">Antes de abrir el simulador</span>
+    <h2 class="section-title">Los componentes que vas a ensamblar — y su conexión con la teoría</h2>
+
+    <p>
+      El simulador te pedirá colocar estos componentes en orden. Antes de hacerlo, lee cada tarjeta
+      y conecta mentalmente cada pieza con lo que ya estudiamos.
+    </p>
+
+    <!-- Tarjeta madre -->
+    <div class="componente-card">
+      <div class="componente-visual" style="background: #3e0d1e;">
+        <div class="componente-icono">[ TB ]</div>
+        <div class="componente-nombre-visual">Tarjeta madre</div>
+      </div>
+      <div class="componente-info">
+        <div class="componente-nombre">Tarjeta madre (Motherboard)</div>
+        <div class="componente-rol">
+          Es la placa principal donde se conectan todos los demás componentes. Contiene los circuitos
+          que forman el <strong>bus del sistema</strong>: el bus de datos, el bus de direcciones y el
+          bus de control que estudiamos en la Unidad 1.
+        </div>
+        <span class="componente-dato">Ranuras: CPU socket, RAM slots, PCIe, SATA, USB headers</span>
+        <div class="componente-conexion">
+          Conecta con la teoria: el bus del sistema no es un cable externo — es un conjunto de pistas
+          de cobre grabadas en esta placa. Todo pasa por aqui.
+        </div>
+      </div>
+    </div>
+
+    <!-- Procesador -->
+    <div class="componente-card">
+      <div class="componente-visual" style="background: #5e162e;">
+        <div class="componente-icono">CPU</div>
+        <div class="componente-nombre-visual">Procesador</div>
+      </div>
+      <div class="componente-info">
+        <div class="componente-nombre">Procesador (CPU)</div>
+        <div class="componente-rol">
+          El chip que contiene la ALU, la Unidad de Control y los registros internos. Es el componente
+          central de todo lo que estudiamos en la Unidad 2. Se coloca directamente en el
+          <strong>socket de la tarjeta madre</strong> y necesita una palanca de seguridad para fijarse.
+        </div>
+        <span class="componente-dato">Ejemplos: Intel Core i7 (socket LGA), AMD Ryzen (socket AM5)</span>
+        <div class="componente-conexion">
+          Conecta con la teoria: dentro de este chip de pocos centimetros cuadrados viven el PC,
+          el IR, el MAR, el MBR y la ALU que simulamos en clase.
+        </div>
+      </div>
+    </div>
+
+    <!-- Disipador -->
+    <div class="componente-card">
+      <div class="componente-visual" style="background: #7a2040;">
+        <div class="componente-icono">[ D ]</div>
+        <div class="componente-nombre-visual">Disipador de calor</div>
+      </div>
+      <div class="componente-info">
+        <div class="componente-nombre">Disipador de calor (Heatsink + Ventilador)</div>
+        <div class="componente-rol">
+          La CPU genera mucho calor porque conmuta miles de millones de transistores por segundo.
+          El disipador transfiere ese calor fuera del chip. Sin el, la CPU alcanza temperaturas
+          que la danan en segundos.
+        </div>
+        <span class="componente-dato">Se aplica pasta termica entre el procesador y el disipador</span>
+        <div class="componente-conexion">
+          Conecta con la teoria: un procesador de 3 GHz genera mas calor que uno de 1 GHz porque
+          sus transistores conmutan el triple de veces por segundo. La frecuencia de reloj tiene un
+          costo fisico directo: temperatura.
+        </div>
+      </div>
+    </div>
+
+    <!-- RAM -->
+    <div class="componente-card">
+      <div class="componente-visual" style="background: #1a5c2a;">
+        <div class="componente-icono">RAM</div>
+        <div class="componente-nombre-visual">Memoria RAM</div>
+      </div>
+      <div class="componente-info">
+        <div class="componente-nombre">Memoria RAM (Random Access Memory)</div>
+        <div class="componente-rol">
+          La memoria principal donde residen el programa y sus datos mientras se ejecuta. La CPU
+          accede a ella millones de veces por segundo usando el bus de memoria. Es volatil: pierde
+          todo al apagarse.
+        </div>
+        <span class="componente-dato">Tipos actuales: DDR5 — velocidad hasta 8400 MT/s</span>
+        <div class="componente-conexion">
+          Conecta con la teoria: cuando el PC apunta a una direccion, esa direccion vive en la RAM.
+          El MAR lleva esa direccion y el MBR trae el dato de regreso. La RAM es el otro extremo
+          de ese viaje que describimos en el ciclo de instruccion.
+        </div>
+      </div>
+    </div>
+
+    <!-- Fuente -->
+    <div class="componente-card">
+      <div class="componente-visual" style="background: #3b3030;">
+        <div class="componente-icono">PSU</div>
+        <div class="componente-nombre-visual">Fuente de poder</div>
+      </div>
+      <div class="componente-info">
+        <div class="componente-nombre">Fuente de poder (PSU — Power Supply Unit)</div>
+        <div class="componente-rol">
+          Convierte la corriente alterna de la toma de corriente en corriente directa con voltajes
+          especificos (12V, 5V, 3.3V) que cada componente necesita. Sin ella, ningun circuito funciona.
+        </div>
+        <span class="componente-dato">Se mide en Watts — una PC gamer puede consumir entre 400W y 850W</span>
+        <div class="componente-conexion">
+          Conecta con la teoria: los transistores dentro de la CPU se abren y cierran usando diferencias
+          de voltaje (tipicamente 0V = apagado, 1.2V = encendido). La fuente garantiza esa tension
+          estable para que los bits tengan sentido.
+        </div>
+      </div>
+    </div>
+
+    <!-- Disco / almacenamiento -->
+    <div class="componente-card">
+      <div class="componente-visual" style="background: #0d3b6e;">
+        <div class="componente-icono">SSD</div>
+        <div class="componente-nombre-visual">Almacenamiento</div>
+      </div>
+      <div class="componente-info">
+        <div class="componente-nombre">Almacenamiento (SSD / HDD)</div>
+        <div class="componente-rol">
+          Guarda el sistema operativo, los programas y los archivos de forma permanente. A diferencia
+          de la RAM, no pierde los datos al apagarse. Los programas se cargan del disco a la RAM antes
+          de que la CPU los pueda ejecutar.
+        </div>
+        <span class="componente-dato">SSD NVMe: hasta 7000 MB/s — HDD mecanico: 100-200 MB/s</span>
+        <div class="componente-conexion">
+          Conecta con la teoria: la CPU nunca ejecuta instrucciones directamente desde el disco.
+          Primero las copia a la RAM, y desde ahi las lee instruction por instruccion usando el
+          ciclo Fetch-Decode-Execute-Writeback.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta gráfica -->
+    <div class="componente-card">
+      <div class="componente-visual" style="background: #006064;">
+        <div class="componente-icono">GPU</div>
+        <div class="componente-nombre-visual">Tarjeta grafica</div>
+      </div>
+      <div class="componente-info">
+        <div class="componente-nombre">Tarjeta grafica (GPU)</div>
+        <div class="componente-rol">
+          Procesa la imagen que ves en la pantalla. Tiene su propia ALU, sus propios registros y su
+          propia memoria (VRAM). Se conecta a la tarjeta madre por el slot PCIe, que es el Nivel 3
+          de la jerarquia de interconexiones que vimos en clase.
+        </div>
+        <span class="componente-dato">Se conecta via PCIe 5.0 x16 — hasta 64 GB/s de ancho de banda</span>
+        <div class="componente-conexion">
+          Conecta con la teoria: una GPU es esencialmente una CPU con miles de nucleos mas pequenos
+          disenados para hacer muchas operaciones en paralelo (procesamiento paralelo, Tema 2.4).
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ══ MAPA DE CONEXIONES ═════════════════════════ -->
+  <div class="section">
+    <span class="section-label">Para tener claro antes de ensamblar</span>
+    <h2 class="section-title">Como se conectan los componentes entre si</h2>
+
+    <p>Cada componente se comunica con los demas a traves de un camino especifico. Este mapa resume esas conexiones:</p>
+
+    <div class="conexiones-map">
+      <div class="cone-box">
+        <div class="cone-top">CPU</div>
+        <div class="cone-arrow">&#8597;</div>
+        <div class="cone-bot">Socket de la tarjeta madre (fisico) + bus interno de alta velocidad</div>
+      </div>
+      <div class="cone-box">
+        <div class="cone-top">RAM</div>
+        <div class="cone-arrow">&#8597;</div>
+        <div class="cone-bot">Ranura DIMM de la tarjeta madre + bus de memoria DDR</div>
+      </div>
+      <div class="cone-box">
+        <div class="cone-top">GPU</div>
+        <div class="cone-arrow">&#8597;</div>
+        <div class="cone-bot">Ranura PCIe x16 de la tarjeta madre + conector de poder de la PSU</div>
+      </div>
+      <div class="cone-box">
+        <div class="cone-top">SSD / HDD</div>
+        <div class="cone-arrow">&#8597;</div>
+        <div class="cone-bot">Puerto M.2 o SATA de la tarjeta madre + cable de poder de la PSU</div>
+      </div>
+      <div class="cone-box">
+        <div class="cone-top">PSU</div>
+        <div class="cone-arrow">&#8595;</div>
+        <div class="cone-bot">Conectores de 24 pines (MB), 8 pines (CPU), PCIe y SATA a cada componente</div>
+      </div>
+      <div class="cone-box">
+        <div class="cone-top">Disipador</div>
+        <div class="cone-arrow">&#8597;</div>
+        <div class="cone-bot">Directamente sobre la CPU + conector de 4 pines para el ventilador en la MB</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ══ GUIA DEL SIMULADOR ════════════════════════ -->
+  <div class="section">
+    <span class="section-label">Uso del simulador</span>
+    <h2 class="section-title">Como trabajar con el Simulador 3D de Cisco hoy</h2>
+
+    <p>
+      El simulador tiene dos modos. Usaremos ambos en este orden:
+    </p>
+
+    <div class="callout" style="margin-bottom:1.5rem;">
+      <p>
+        <strong>Modo Learn primero, modo Test despues.</strong> El modo Learn te guia paso a paso.
+        Una vez que lo completes, el modo Test te evalua sin ayuda. No saltes al Test sin haber
+        terminado el Learn — no se trata de adivinar, se trata de entender primero.
+      </p>
+    </div>
+
+    <h3 style="font-family:var(--font-display); color:var(--guinda); font-size:1.1rem; margin-bottom:1rem;">
+      Modo Learn — Sigue estos pasos con atencion
+    </h3>
+
+    <div class="paso-sim">
+      <div class="paso-num-grande">1</div>
+      <div class="paso-contenido">
+        <h4>Abre el simulador y selecciona "Learn"</h4>
+        <p>
+          Al iniciar veras un gabinete vacio y una lista de componentes a la derecha. Lee el nombre
+          de cada uno antes de arrastrarlo. El simulador te indicara en que orden colocarlos.
+        </p>
+        <span class="observa">Observa: el gabinete tiene compartimentos especificos para cada componente.
+        El orden importa — no puedes poner la RAM antes que la tarjeta madre.</span>
+      </div>
+    </div>
+
+    <div class="paso-sim">
+      <div class="paso-num-grande">2</div>
+      <div class="paso-contenido">
+        <h4>Instala la tarjeta madre en el gabinete</h4>
+        <p>
+          La tarjeta madre va primero porque todo lo demas se conecta a ella. Fjate en los orificios
+          de tornillo: son los puntos de soporte que evitan que la placa haga contacto electrico
+          con el metal del gabinete.
+        </p>
+        <span class="observa">Observa: el bus del sistema no es visible a simple vista — esta grabado
+        como pistas de cobre dentro de la placa.</span>
+      </div>
+    </div>
+
+    <div class="paso-sim">
+      <div class="paso-num-grande">3</div>
+      <div class="paso-contenido">
+        <h4>Coloca el procesador en el socket</h4>
+        <p>
+          El socket tiene una orientacion especifica — hay una esquina marcada con un triangulo en
+          el procesador y otra en el socket. Si no coinciden, el procesador no entra. Una vez colocado,
+          baja la palanca de seguridad para fijarlo.
+        </p>
+        <span class="observa">Observa: este pequeno chip de silicio contiene miles de millones de
+        transistores. Aqui dentro viven el PC, el IR, la ALU y todos los registros que simulamos.</span>
+      </div>
+    </div>
+
+    <div class="paso-sim">
+      <div class="paso-num-grande">4</div>
+      <div class="paso-contenido">
+        <h4>Aplica pasta termica e instala el disipador</h4>
+        <p>
+          Una pequena cantidad de pasta termica (tamano de un grano de arroz) se aplica sobre el
+          procesador. Luego el disipador se presiona sobre el y se fija con sus propios tornillos.
+          Conecta el cable del ventilador al conector de 4 pines de la tarjeta madre.
+        </p>
+        <span class="observa">Observa: la pasta termica rellena las microscropicas irregularidades entre
+        el chip y el disipador, mejorando la transferencia de calor hasta en un 30%.</span>
+      </div>
+    </div>
+
+    <div class="paso-sim">
+      <div class="paso-num-grande">5</div>
+      <div class="paso-contenido">
+        <h4>Instala los modulos de RAM</h4>
+        <p>
+          Las ranuras DIMM tienen una muesca que evita instalar el modulo al reves. Presiona con
+          firmeza hasta que los seguros laterales hagan clic. Si el simulador muestra dos ranuras,
+          coloca los modulos en las ranuras del mismo color para activar el modo de doble canal.
+        </p>
+        <span class="observa">Observa: la RAM es la memoria que el MAR y el MBR usan en el ciclo
+        de instruccion. Esta fisicamente a centimetros del procesador, conectada por el bus de memoria.</span>
+      </div>
+    </div>
+
+    <div class="paso-sim">
+      <div class="paso-num-grande">6</div>
+      <div class="paso-contenido">
+        <h4>Instala el almacenamiento y la tarjeta grafica</h4>
+        <p>
+          El SSD M.2 va directamente en la ranura correspondiente de la tarjeta madre sin cables.
+          La tarjeta grafica va en la ranura PCIe x16 — la mas larga de la placa — y necesita
+          ademas un conector de poder de la fuente.
+        </p>
+        <span class="observa">Observa: la ranura PCIe es el bus que conecta la GPU con el procesador.
+        Es el Nivel 3 de la jerarquia de interconexiones que vimos: alta velocidad, pero por debajo
+        del bus de memoria.</span>
+      </div>
+    </div>
+
+    <div class="paso-sim">
+      <div class="paso-num-grande">7</div>
+      <div class="paso-contenido">
+        <h4>Conecta la fuente de poder</h4>
+        <p>
+          La fuente tiene varios conectores especificos: el de 24 pines para la tarjeta madre, el de
+          8 pines para el procesador, los conectores PCIe para la GPU y los SATA para discos.
+          Cada uno solo puede ir en el lugar correcto — estan disenados para no confundirse.
+        </p>
+        <span class="observa">Observa: sin esta fuente, ningun transistor dentro de la CPU puede
+        cambiar de estado. El voltaje es la "electricidad" que da vida a los bits.</span>
+      </div>
+    </div>
+
+    <div class="paso-sim">
+      <div class="paso-num-grande">8</div>
+      <div class="paso-contenido">
+        <h4>Verifica, cierra el gabinete y prueba en modo Test</h4>
+        <p>
+          El simulador revisara que todo este correctamente conectado. Si hay algo mal, te indicara
+          que componente tiene un problema. Una vez aprobado en modo Learn, cambia a modo Test y
+          repite el proceso sin ayuda. Anota cuantos intentos necesitaste.
+        </p>
+        <span class="observa">Observa: en el mundo real, un error de ensamblaje puede danyar componentes
+        que cuestan miles de pesos. El simulador te permite equivocarte sin consecuencias.</span>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ══ ACTIVIDAD DE EVALUACIÓN ════════════════════ -->
+  <div class="eval-section">
+
+    <div class="eval-header">
+      <h2>Actividad de evaluacion practica</h2>
+      <span class="eval-pts-badge">20 puntos &nbsp;·&nbsp; Individual</span>
+    </div>
+
+    <div class="eval-body">
+
+      <div class="eval-instruccion">
+        Completa esta ficha mientras trabajas con el simulador y al finalizar tu sesion practica.
+        No hay respuestas de opcion multiple: escribe con tus propias palabras lo que observaste,
+        relacionandolo con los conceptos de la Unidad 2. Entrega esta hoja al asesor al terminar la sesion.
+      </div>
+
+      <!-- Datos del alumno -->
+      <div class="datos-alumno">
+        <div class="dato-campo full">
+          <label class="dato-label">Nombre completo</label>
+          <input class="dato-input" type="text" placeholder="Apellido paterno, apellido materno, nombre(s)" autocomplete="off">
+        </div>
+        <div class="dato-campo">
+          <label class="dato-label">Matricula</label>
+          <input class="dato-input" type="text" autocomplete="off">
+        </div>
+        <div class="dato-campo">
+          <label class="dato-label">Fecha</label>
+          <input class="dato-input" type="text" placeholder="dd / mm / aaaa" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Ficha 1 -->
+      <div class="ficha">
+        <div class="ficha-header">
+          <span class="ficha-num">Actividad 1</span>
+          <span class="ficha-titulo">Identificacion de componentes</span>
+          <span class="ficha-pts">5 pts</span>
+        </div>
+        <div class="ficha-body">
+          <p>
+            Durante el ensamblaje en el simulador, identificaste componentes fisicos que corresponden
+            a conceptos que ya estudiamos. Completa la siguiente tabla indicando para cada componente
+            su funcion dentro del sistema y su relacion con algun concepto de la Unidad 2.
+          </p>
+          <table class="id-table">
+            <thead>
+              <tr>
+                <th>Componente</th>
+                <th>¿Para que sirve en palabras propias?</th>
+                <th>¿Con que concepto de la Unidad 2 lo relacionas?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="comp-fixed">Procesador (CPU)</span></td>
+                <td><input type="text" autocomplete="off"></td>
+                <td><input type="text" autocomplete="off"></td>
+              </tr>
+              <tr>
+                <td><span class="comp-fixed">Memoria RAM</span></td>
+                <td><input type="text" autocomplete="off"></td>
+                <td><input type="text" autocomplete="off"></td>
+              </tr>
+              <tr>
+                <td><span class="comp-fixed">Tarjeta madre</span></td>
+                <td><input type="text" autocomplete="off"></td>
+                <td><input type="text" autocomplete="off"></td>
+              </tr>
+              <tr>
+                <td><span class="comp-fixed">SSD / Disco</span></td>
+                <td><input type="text" autocomplete="off"></td>
+                <td><input type="text" autocomplete="off"></td>
+              </tr>
+              <tr>
+                <td><span class="comp-fixed">Tarjeta grafica</span></td>
+                <td><input type="text" autocomplete="off"></td>
+                <td><input type="text" autocomplete="off"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Ficha 2 -->
+      <div class="ficha">
+        <div class="ficha-header">
+          <span class="ficha-num">Actividad 2</span>
+          <span class="ficha-titulo">El ciclo de instruccion en el hardware real</span>
+          <span class="ficha-pts">5 pts</span>
+        </div>
+        <div class="ficha-body">
+          <p>
+            Ahora que viste fisicamente donde esta la CPU y la RAM dentro de la computadora,
+            explica con tus propias palabras como ocurre el ciclo Fetch-Decode-Execute-Write-back
+            en ese hardware real que acabas de ensamblar. Menciona al menos dos componentes fisicos
+            que identifiques del simulador.
+          </p>
+          <label class="campo-label">Tu explicacion</label>
+          <textarea class="campo-input parrafo" placeholder="Ejemplo de inicio: 'Cuando el procesador necesita una instruccion, envia la direccion desde su interior hacia la tarjeta madre, que la transmite por el bus de memoria hasta...'"></textarea>
+        </div>
+      </div>
+
+      <!-- Ficha 3 -->
+      <div class="ficha">
+        <div class="ficha-header">
+          <span class="ficha-num">Actividad 3</span>
+          <span class="ficha-titulo">Una cosa que cambia la velocidad del sistema</span>
+          <span class="ficha-pts">5 pts</span>
+        </div>
+        <div class="ficha-body">
+          <p>
+            En el simulador pudiste ver que la CPU y la RAM se comunican a traves de la tarjeta madre.
+            Esa comunicacion tiene un limite de velocidad determinado por el bus de memoria.
+            Responde las siguientes preguntas:
+          </p>
+
+          <label class="campo-label">¿Que sucede si la CPU es muy rapida pero la RAM es muy lenta? ¿Que componente crea el cuello de botella?</label>
+          <textarea class="campo-input parrafo" style="min-height:4rem;" placeholder="Escribe tu respuesta..."></textarea>
+
+          <label class="campo-label">¿Como ayuda la memoria cache a resolver ese problema? (Relaciona con la jerarquia de interconexiones)</label>
+          <textarea class="campo-input parrafo" style="min-height:4rem;" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+      </div>
+
+      <!-- Ficha 4 -->
+      <div class="ficha">
+        <div class="ficha-header">
+          <span class="ficha-num">Actividad 4</span>
+          <span class="ficha-titulo">Reflexion — Lo que no se ve en los diagramas</span>
+          <span class="ficha-pts">5 pts</span>
+        </div>
+        <div class="ficha-body">
+          <p>
+            Esta sesion tuvo como proposito que vieras el hardware de forma concreta.
+            Responde con honestidad:
+          </p>
+
+          <label class="campo-label">¿Que componente del simulador te fue mas dificil de ubicar o entender donde va? ¿Por que crees que fue ese?</label>
+          <textarea class="campo-input parrafo" style="min-height:4rem;" placeholder="Escribe tu respuesta..."></textarea>
+
+          <label class="campo-label">¿Que concepto de la Unidad 2 (registros, ciclo de instruccion, flags, etc.) entendiste mejor al ver el hardware fisico? Explica por que.</label>
+          <textarea class="campo-input parrafo" style="min-height:4.5rem;" placeholder="Escribe tu respuesta..."></textarea>
+
+          <label class="campo-label">Escribe una pregunta que te haya surgido durante la sesion que aun no tienes resuelta.</label>
+          <textarea class="campo-input parrafo" style="min-height:3.5rem;" placeholder="Cualquier duda es valida. Puede ser sobre hardware, software, o la conexion entre ambos."></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Botón de impresión -->
+  <div class="print-bar no-print">
+    <button class="btn-print" onclick="window.print()">Imprimir / Guardar como PDF</button>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div>
+    <strong>IEDEP</strong> &nbsp;·&nbsp; Instituto de Educacion Digital del Estado de Puebla &nbsp;·&nbsp;
+    Arquitectura de Computadoras &nbsp;·&nbsp; Unidad 2 — Sesion practica con simulador 3D
+  </div>
+  <div>Lic. en Sistemas Computacionales &nbsp;·&nbsp; 2do Cuatrimestre</div>
+</footer>
+
+</body>
+</html>
