@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitectura Práctica: Diseña, Arma y Prueba tu PC | Arquitectura de Computadoras</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="plantillas/base.css">
+
+<style>
+
+/* ── Hero de recurso ──────────────────────────── */
+.recurso-hero {
+  background: var(--guinda);
+  color: white;
+  padding: 2.5rem 2rem 3rem;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.recurso-hero::before {
+  content: '';
+  position: absolute;
+  right: -80px; top: -80px;
+  width: 340px; height: 340px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  pointer-events: none;
+}
+.recurso-hero::after {
+  content: '';
+  position: absolute;
+  right: 60px; top: 60px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.03);
+  pointer-events: none;
+}
+.rh-eyebrow {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  margin-bottom: .6rem;
+  position: relative;
+}
+.rh-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.08;
+  max-width: 680px;
+  position: relative;
+}
+.rh-title em { font-style: normal; color: #f5c0d0; }
+.rh-sub {
+  font-size: .97rem;
+  color: rgba(255,255,255,.76);
+  max-width: 580px;
+  margin-top: .85rem;
+  line-height: 1.65;
+  position: relative;
+}
+.rh-tags {
+  display: flex;
+  gap: .45rem;
+  flex-wrap: wrap;
+  margin-top: 1.3rem;
+  position: relative;
+}
+.rh-tag {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .28rem .7rem;
+  border: 1.5px solid rgba(255,255,255,.3);
+  color: rgba(255,255,255,.85);
+  border-radius: 2px;
+}
+
+/* ── Pipeline de sesión ───────────────────────── */
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border2);
+  border-top: 3px solid var(--guinda);
+  background: white;
+  margin-bottom: 0;
+}
+@media (max-width:640px) { .pipeline { grid-template-columns: 1fr 1fr; } }
+.pipe-step {
+  padding: 1rem 1.1rem;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.pipe-step:last-child { border-right: none; }
+.pipe-num {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--guinda);
+  margin-bottom: .25rem;
+}
+.pipe-name {
+  font-family: var(--font-ui);
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: .1rem;
+}
+.pipe-tool {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--ink-muted);
+}
+.pipe-time {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  color: var(--guinda);
+  font-weight: 700;
+  margin-top: .35rem;
+  background: var(--guinda-light);
+  display: inline-block;
+  padding: .1rem .4rem;
+  border-radius: 2px;
+}
+
+/* ── Tarjeta de herramienta ───────────────────── */
+.tool-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 2rem;
+  background: white;
+}
+.tool-card-header {
+  background: var(--guinda);
+  padding: 1rem 1.4rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.tool-card-header.verde   { background: #1a5c2a; }
+.tool-card-header.azul    { background: #0d3b6e; }
+.tool-card-header.oscuro  { background: #1a1a2e; }
+.tool-card-header.naranja { background: #7a3800; }
+.tool-card-header.teal    { background: #0d5c52; }
+
+.tool-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.1;
+}
+.tool-tipo {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  margin-top: .2rem;
+}
+.tool-badges {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-top: .3rem;
+}
+.tool-badge {
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  padding: .2rem .55rem;
+  border-radius: 2px;
+  background: rgba(255,255,255,.18);
+  color: white;
+  white-space: nowrap;
+}
+.tool-badge.gratis   { background: rgba(86,211,100,.3); color: #a0ffa8; }
+.tool-badge.web      { background: rgba(100,180,255,.25); color: #a8d8ff; }
+.tool-badge.descarga { background: rgba(255,200,100,.2); color: #ffe8b0; }
+.tool-badge.nuevo    { background: rgba(255,100,100,.25); color: #ffb8b8; }
+
+.tool-url {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.75);
+  text-decoration: none;
+  padding: .3rem .7rem;
+  border: 1.5px solid rgba(255,255,255,.3);
+  border-radius: 3px;
+  white-space: nowrap;
+  transition: all .15s;
+  align-self: flex-start;
+  margin-top: .3rem;
+}
+.tool-url:hover { background: rgba(255,255,255,.1); color: white; }
+
+.tool-body { padding: 1.25rem 1.4rem; }
+.tool-desc {
+  font-size: .95rem;
+  line-height: 1.65;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+.tool-desc strong { color: var(--guinda-dark); }
+
+/* Usos pedagógicos */
+.usos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+@media (max-width:580px) { .usos-grid { grid-template-columns: 1fr; } }
+.uso-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .65rem .85rem;
+  font-size: .88rem;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+.uso-item::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--guinda);
+  flex-shrink: 0;
+  margin-top: .35rem;
+}
+
+/* Instrucción de uso en clase */
+.instruccion-clase {
+  background: var(--guinda-light);
+  border-left: 3px solid var(--guinda);
+  padding: .85rem 1.1rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: .88rem;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.instruccion-clase strong { color: var(--guinda-dark); }
+
+/* Screenshot-like preview panel */
+.preview-panel {
+  background: #1a1218;
+  border-radius: var(--radius-md);
+  padding: 1.1rem;
+  margin: 1rem 0;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  line-height: 1.7;
+  color: #c8b0b8;
+}
+.preview-panel .ph { color: #f5c0d0; font-weight: 700; }
+.preview-panel .pv { color: #a8d8b0; }
+.preview-panel .pc { color: #8cb8d8; }
+.preview-panel .pw { color: #e8e0a0; }
+.preview-panel .pm { color: #c8a0e0; }
+
+/* Comparador visual */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .86rem;
+  margin: 1rem 0;
+}
+.compare-table th {
+  background: var(--guinda);
+  color: white;
+  padding: .55rem .9rem;
+  font-family: var(--font-ui);
+  font-size: .73rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-align: left;
+}
+.compare-table td {
+  padding: .55rem .9rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.compare-table tr:nth-child(even) td { background: var(--surface); }
+.compare-table .check { color: #1e8449; font-weight: 700; }
+.compare-table .cross { color: #922b21; }
+.compare-table .name-col { font-family: var(--font-mono); font-weight: 600; color: var(--guinda-dark); }
+
+/* ── Actividad de evaluación ──────────────────── */
+.eval-wrapper {
+  border: 2px solid var(--guinda);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: 3rem;
+}
+.eval-top {
+  background: var(--guinda);
+  color: white;
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+.eval-top h2 { color: white; font-family: var(--font-display); font-size: 1.5rem; margin: 0; }
+.eval-top-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .3rem;
+}
+.eval-top-meta span {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  font-weight: 700;
+  background: rgba(255,255,255,.18);
+  padding: .2rem .65rem;
+  border-radius: 2px;
+  letter-spacing: .04em;
+}
+.eval-inner { padding: 1.5rem; background: var(--off-white); }
+
+/* Datos alumno */
+.da-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem 1.5rem;
+  background: white;
+  border: 1px solid var(--border);
+  padding: 1.2rem 1.4rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+}
+@media (max-width:600px) { .da-grid { grid-template-columns: 1fr; } }
+.da-field { display: flex; flex-direction: column; gap: .2rem; }
+.da-field.full { grid-column: 1/-1; }
+.da-label {
+  font-family: var(--font-ui);
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-muted);
+}
+.da-input {
+  border: none;
+  border-bottom: 1.5px solid var(--border-strong);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: .95rem;
+  color: var(--ink);
+  padding: .28rem 0;
+  outline: none;
+  -webkit-user-select: text; user-select: text;
+}
+.da-input:focus { border-bottom-color: var(--guinda); }
+
+/* Bloques de actividad */
+.act-block {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.act-head {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: .7rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.act-num {
+  font-family: var(--font-ui);
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: white;
+  background: var(--guinda);
+  padding: .15rem .6rem;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.act-titulo {
+  font-family: var(--font-ui);
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.act-pts {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.act-body { padding: .9rem 1.1rem; }
+.act-body > p {
+  font-size: .9rem;
+  line-height: 1.6;
+  color: var(--ink);
+  margin-bottom: .7rem;
+}
+
+/* Tabla build */
+.build-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .86rem;
+  margin-bottom: .6rem;
+}
+.build-table th {
+  background: var(--guinda);
+  color: white;
+  padding: .5rem .85rem;
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  text-align: left;
+}
+.build-table td {
+  padding: .5rem .85rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.build-table tr:nth-child(even) td { background: var(--surface); }
+.build-table td .cat-label {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--guinda-dark);
+}
+.build-table td input, .build-table td textarea {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid var(--border-strong);
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: .88rem;
+  color: var(--ink);
+  outline: none;
+  padding: .12rem 0;
+  resize: none;
+  -webkit-user-select: text; user-select: text;
+}
+.build-table td input:focus, .build-table td textarea:focus {
+  border-bottom-color: var(--guinda);
+}
+
+/* Campos de texto abierto */
+.campo-r {
+  width: 100%;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: .6rem .9rem;
+  font-family: var(--font-ui);
+  font-size: .9rem;
+  color: var(--ink);
+  background: var(--off-white);
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 4.5rem;
+  margin-top: .35rem;
+  -webkit-user-select: text; user-select: text;
+}
+.campo-r:focus { border-color: var(--guinda); background: white; }
+.campo-r.corto { min-height: 2.6rem; }
+.campo-label-r {
+  font-family: var(--font-ui);
+  font-size: .74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--guinda);
+  display: block;
+  margin-top: .6rem;
+}
+
+/* Escala de compatibilidad */
+.compat-scale {
+  display: flex;
+  gap: .35rem;
+  margin: .4rem 0 .2rem;
+  flex-wrap: wrap;
+}
+.cs-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .35rem .7rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: .83rem;
+  color: var(--ink-secondary);
+  transition: all .12s;
+  -webkit-user-select: none; user-select: none;
+  background: white;
+}
+.cs-item input[type="radio"] { accent-color: var(--guinda); cursor: pointer; }
+.cs-item:has(input:checked) {
+  border-color: var(--guinda);
+  background: var(--guinda-light);
+  color: var(--guinda-dark);
+  font-weight: 600;
+}
+
+/* Print */
+.no-print { }
+@media print {
+  .no-print { display: none; }
+  body { -webkit-user-select: text; user-select: text; }
+  .tool-url { display: none; }
+  .recurso-hero::before, .recurso-hero::after { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header institucional -->
+<header class="site-header">
+  <div class="logo-wrap">
+    <img src="plantillas/imagen1.png" alt="IEDEP">
+  </div>
+  <div class="header-text">
+    <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+    <span class="doc-title">Arquitectura de Computadoras &nbsp;|&nbsp; Unidad 2 &nbsp;|&nbsp; Sesión práctica 2</span>
+  </div>
+  <div class="logo-wrap" style="margin-left:auto;">
+    <img src="plantillas/imagen2.png" alt="" style="height:48px; opacity:.85;">
+  </div>
+</header>
+
+<!-- Hero -->
+<div class="recurso-hero">
+  <div class="rh-eyebrow">Licenciatura en Sistemas Computacionales &nbsp;·&nbsp; 2do Cuatrimestre</div>
+  <h1 class="rh-title">Arquitectura práctica:<br><em>Diseña, Arma y Prueba</em> tu PC</h1>
+  <p class="rh-sub">
+    La semana pasada armamos una PC con el simulador de Cisco. Hoy vamos más lejos:
+    usaremos herramientas reales que los profesionales del sector usan para planear,
+    construir y diagnosticar hardware — directamente desde el navegador.
+  </p>
+  <div class="rh-tags">
+    <span class="rh-tag">Sin instalacion</span>
+    <span class="rh-tag">Componentes reales</span>
+    <span class="rh-tag">Compatibilidad en tiempo real</span>
+    <span class="rh-tag">Benchmarks reales</span>
+    <span class="rh-tag">Gratis</span>
+  </div>
+</div>
+
+<!-- Pipeline de la sesión -->
+<div class="pipeline">
+  <div class="pipe-step">
+    <div class="pipe-num">Etapa 1</div>
+    <div class="pipe-name">Planear el build</div>
+    <div class="pipe-tool">PCPartPicker</div>
+    <div class="pipe-time">15 min</div>
+  </div>
+  <div class="pipe-step">
+    <div class="pipe-num">Etapa 2</div>
+    <div class="pipe-name">Visualizar en 3D</div>
+    <div class="pipe-tool">BuildCores + PC Building Sim</div>
+    <div class="pipe-time">15 min</div>
+  </div>
+  <div class="pipe-step">
+    <div class="pipe-num">Etapa 3</div>
+    <div class="pipe-name">Probar y diagnosticar</div>
+    <div class="pipe-tool">UserBenchmark</div>
+    <div class="pipe-time">10 min</div>
+  </div>
+  <div class="pipe-step">
+    <div class="pipe-num">Etapa 4</div>
+    <div class="pipe-name">Actividad de cierre</div>
+    <div class="pipe-tool">Ficha de evaluacion</div>
+    <div class="pipe-time">20 min</div>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- CONTEXTO -->
+  <div class="section">
+    <span class="section-label">El salto de hoy</span>
+    <h2 class="section-title">Del simulador de Cisco a las herramientas que usa la industria</h2>
+
+    <p>
+      El simulador de Cisco fue un buen punto de partida: te mostró el orden físico en que van los
+      componentes y la noción de que cada pieza tiene un lugar específico. Pero tenía dos limitaciones
+      importantes: los componentes eran antiguos y no podías verificar si tu selección era compatible
+      ni cuánto rendiría realmente.
+    </p>
+    <p>
+      Hoy trabajaremos con cuatro herramientas que resuelven exactamente eso. Son gratuitas, funcionan
+      en el navegador y las usará cualquier técnico o ingeniero que necesite planear un equipo real.
+    </p>
+
+    <div class="callout note">
+      <p>
+        <strong>Conexión con la Unidad 2:</strong> cada componente que selecciones hoy corresponde
+        a un concepto que ya estudiamos. El CPU tiene registros, ALU y ciclo de instrucción.
+        La RAM es la memoria que el MAR y el MBR usan en cada ciclo. La GPU es una CPU paralela
+        con miles de núcleos. El storage es de donde se carga el programa a la RAM antes de ejecutarse.
+        Hoy verás todo eso en hardware real con precios reales.
+      </p>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ══ HERRAMIENTA 1: PCPartPicker ══════════════════ -->
+  <div class="section">
+    <span class="section-label">Herramienta 1 — Planear</span>
+    <h2 class="section-title">PCPartPicker — El planificador de hardware más usado del mundo</h2>
+
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div>
+          <div class="tool-name">PCPartPicker</div>
+          <div class="tool-tipo">Planificador y verificador de compatibilidad</div>
+          <div class="tool-badges">
+            <span class="tool-badge gratis">100% Gratis</span>
+            <span class="tool-badge web">Solo navegador</span>
+            <span class="tool-badge nuevo">1200+ componentes reales</span>
+          </div>
+        </div>
+        <a class="tool-url no-print" href="https://pcpartpicker.com/list/" target="_blank">
+          pcpartpicker.com/list
+        </a>
+      </div>
+      <div class="tool-body">
+        <p class="tool-desc">
+          PCPartPicker es la herramienta de referencia global para planear builds de PC. Mientras
+          seleccionas componentes, su motor de compatibilidad verifica automáticamente que
+          <strong>el socket del CPU coincida con la tarjeta madre</strong>, que la RAM sea del tipo
+          correcto (DDR4/DDR5), que la fuente tenga suficientes watts, y docenas de otras combinaciones
+          que podrían arruinar una compra real. Además compara precios en tiempo real entre tiendas.
+        </p>
+
+        <div class="usos-grid">
+          <div class="uso-item">Seleccionar CPU, tarjeta madre, RAM, GPU, storage, case y PSU en orden lógico</div>
+          <div class="uso-item">Detectar incompatibilidades antes de "comprar" — el sistema alerta en rojo</div>
+          <div class="uso-item">Ver el consumo estimado de watts y si la fuente alcanza</div>
+          <div class="uso-item">Compartir el build con un URL — ideal para mostrar al grupo</div>
+          <div class="uso-item">Explorar builds de otros usuarios organizados por presupuesto y uso</div>
+          <div class="uso-item">Comparar precios entre Amazon, Newegg y otras tiendas en tiempo real</div>
+        </div>
+
+        <div class="instruccion-clase">
+          <strong>En clase hoy:</strong> cada alumno abrirá PCPartPicker y armará un build con un
+          presupuesto hipotetico de <strong>$15,000 MXN</strong>. Empezando por el CPU, el sistema
+          filtrara automaticamente los demas componentes compatibles. Al terminar, copiaras la URL
+          del build para compartirla en la actividad de cierre.
+        </div>
+
+        <!-- Simulación textual del UI -->
+        <div class="preview-panel" style="margin-top:1rem;">
+          <span class="ph">PCPartPicker System Builder</span><br>
+          <span class="pc">CPU        </span>&nbsp; <span class="pv">Intel Core i5-13400F</span> &nbsp; <span class="pw">$4,200 MXN</span><br>
+          <span class="pc">Motherboard</span>&nbsp; <span class="pv">MSI PRO B660M-A DDR4</span> &nbsp; <span class="pw">$2,800 MXN</span><br>
+          <span class="pc">Memory     </span>&nbsp; <span class="pv">Corsair 16GB DDR4-3200</span> &nbsp; <span class="pw">$1,400 MXN</span><br>
+          <span class="pc">GPU        </span>&nbsp; <span class="pv">MSI RTX 3060 Ventus 2X</span> &nbsp; <span class="pw">$4,900 MXN</span><br>
+          <span class="pc">Storage    </span>&nbsp; <span class="pv">Kingston NV2 500GB NVMe</span> &nbsp; <span class="pw">$680 MXN</span><br>
+          <span class="pc">PSU        </span>&nbsp; <span class="pv">Corsair CV650 650W</span> &nbsp; <span class="pw">$1,100 MXN</span><br>
+          <span style="color:#e87070;">! Compatibility: Estimated Wattage 382W — PSU headroom OK</span><br>
+          <span class="pm">Total: $15,080 MXN &nbsp;|&nbsp; Estimated Wattage: 382W</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HERRAMIENTA 2: BuildCores / PC Building Sim ══ -->
+  <div class="section">
+    <span class="section-label">Herramienta 2 — Visualizar en 3D</span>
+    <h2 class="section-title">Dos formas de ver tu build en 3D antes de armarlo</h2>
+
+    <div class="tool-card">
+      <div class="tool-card-header azul">
+        <div>
+          <div class="tool-name">BuildCores</div>
+          <div class="tool-tipo">Visualizador 3D interactivo de builds en el navegador</div>
+          <div class="tool-badges">
+            <span class="tool-badge gratis">Gratis (version web)</span>
+            <span class="tool-badge web">Solo navegador</span>
+            <span class="tool-badge nuevo">3D rotacion completa</span>
+          </div>
+        </div>
+        <a class="tool-url no-print" href="https://buildcores.com" target="_blank">buildcores.com</a>
+      </div>
+      <div class="tool-body">
+        <p class="tool-desc">
+          BuildCores es el unico planificador de PC que muestra los componentes en un
+          <strong>espacio 3D interactivo rotable</strong> desde el navegador. Puedes girar el gabinete,
+          acercarte a los conectores, verificar si el disipador tiene espacio suficiente y ver si los
+          colores del build quedan bien juntos. No es solo estetica: la visualizacion espacial ayuda a
+          entender fisicamente como se montan las piezas.
+        </p>
+        <div class="usos-grid">
+          <div class="uso-item">Ver el build del PCPartPicker en 3D con modelos realistas de los componentes</div>
+          <div class="uso-item">Rotar el gabinete 360 grados para ver como encajan las piezas</div>
+          <div class="uso-item">Verificar clearance del disipador y largo de la GPU visualmente</div>
+          <div class="uso-item">Comparar estetica: colores de RAM, iluminacion, cables</div>
+        </div>
+        <div class="instruccion-clase">
+          <strong>En clase hoy:</strong> importa los componentes de tu build de PCPartPicker a BuildCores.
+          Toma una captura de pantalla del build en 3D para incluirla en tu ficha de evaluacion.
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-card-header oscuro">
+        <div>
+          <div class="tool-name">PC Building Simulator 2</div>
+          <div class="tool-tipo">Videojuego/simulador de armado y reparacion de PCs</div>
+          <div class="tool-badges">
+            <span class="tool-badge descarga">Demo gratis — Epic Games Store</span>
+            <span class="tool-badge nuevo">Componentes con licencia real</span>
+            <span class="tool-badge nuevo">Modo diagnostico</span>
+          </div>
+        </div>
+        <a class="tool-url no-print" href="https://www.pcbuildingsim.com" target="_blank">pcbuildingsim.com</a>
+      </div>
+      <div class="tool-body">
+        <p class="tool-desc">
+          A diferencia del simulador de Cisco, PC Building Simulator 2 usa
+          <strong>componentes reales bajo licencia</strong> de AMD, Intel, NVIDIA, MSI, ASUS, NZXT
+          y mas. No solo armas la PC: debes diagnosticar fallas, reemplazar piezas danadas,
+          actualizar componentes y gestionar un negocio de reparacion. Es el salto del "aprendo como
+          ensamblar" al "entiendo por que algo falla".
+        </p>
+        <div class="usos-grid">
+          <div class="uso-item">Armar PCs con piezas reales en 3D detallado — tornillos, cables, conectores</div>
+          <div class="uso-item">Diagnosticar equipos con fallas: RAM danada, GPU incompatible, PSU insuficiente</div>
+          <div class="uso-item">Ejecutar benchmarks virtuales y ver como afecta cada componente al resultado</div>
+          <div class="uso-item">Instalar sistema operativo virtual y ver la PC "funcionar" dentro del juego</div>
+          <div class="uso-item">Modo libre: 1200+ piezas reales sin presupuesto para experimentar</div>
+          <div class="uso-item">Ver temperaturas en tiempo real al variar el sistema de enfriamiento</div>
+        </div>
+        <div class="instruccion-clase">
+          <strong>Si esta disponible en el equipo:</strong> explora el modo carrera. El primer encargo
+          te pedira diagnosticar una PC con un problema especifico. Identifica que componente falla
+          y explica en tu ficha por que ese componente produce ese sintoma.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HERRAMIENTA 3: UserBenchmark ════════════════ -->
+  <div class="section">
+    <span class="section-label">Herramienta 3 — Probar y diagnosticar</span>
+    <h2 class="section-title">UserBenchmark — Datos reales de rendimiento de cada componente</h2>
+
+    <div class="tool-card">
+      <div class="tool-card-header teal">
+        <div>
+          <div class="tool-name">UserBenchmark</div>
+          <div class="tool-tipo">Base de datos de benchmarks y comparador de componentes</div>
+          <div class="tool-badges">
+            <span class="tool-badge gratis">Gratis</span>
+            <span class="tool-badge web">Solo navegador</span>
+          </div>
+        </div>
+        <a class="tool-url no-print" href="https://cpu.userbenchmark.com" target="_blank">cpu.userbenchmark.com</a>
+      </div>
+      <div class="tool-body">
+        <p class="tool-desc">
+          UserBenchmark permite comparar el rendimiento real de componentes medido por cientos
+          de miles de usuarios en equipos reales. Puedes comparar dos CPUs, dos GPUs o dos configuraciones
+          de RAM y ver graficamente cual rinde mejor en gaming, workstation o servidor.
+          Es la herramienta para responder: <strong>"compro este CPU o ese otro?"</strong>
+        </p>
+
+        <div class="usos-grid">
+          <div class="uso-item">Comparar dos CPUs con grafica de barras y porcentaje de mejora</div>
+          <div class="uso-item">Ver como afecta la velocidad de RAM al rendimiento del sistema</div>
+          <div class="uso-item">Identificar el "cuello de botella" entre CPU y GPU en una configuracion</div>
+          <div class="uso-item">Buscar el procesador que usaste la semana pasada y ver sus specs reales</div>
+        </div>
+
+        <!-- Tabla comparativa embebida -->
+        <div style="margin: 1rem 0;">
+          <div style="font-family:var(--font-mono); font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-muted); margin-bottom:.5rem;">
+            Ejemplo de comparacion — CPUs de gama media 2024-2025
+          </div>
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Procesador</th>
+                <th>Nucleos / Hilos</th>
+                <th>Frecuencia max</th>
+                <th>Score gaming</th>
+                <th>Precio aprox MXN</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="name-col">Intel Core i5-13400F</td>
+                <td>10 / 16</td>
+                <td>4.6 GHz</td>
+                <td>84 / 100</td>
+                <td>$3,800 - $4,400</td>
+              </tr>
+              <tr>
+                <td class="name-col">AMD Ryzen 5 7600</td>
+                <td>6 / 12</td>
+                <td>5.1 GHz</td>
+                <td>90 / 100</td>
+                <td>$4,200 - $4,800</td>
+              </tr>
+              <tr>
+                <td class="name-col">Intel Core i7-13700</td>
+                <td>16 / 24</td>
+                <td>5.2 GHz</td>
+                <td>97 / 100</td>
+                <td>$7,500 - $8,500</td>
+              </tr>
+              <tr>
+                <td class="name-col">AMD Ryzen 7 7700X</td>
+                <td>8 / 16</td>
+                <td>5.4 GHz</td>
+                <td>96 / 100</td>
+                <td>$6,800 - $7,600</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="instruccion-clase">
+          <strong>En clase hoy:</strong> busca en UserBenchmark el CPU que elegiste en PCPartPicker.
+          Compara su score con el del CPU inmediatamente superior en precio. Determina si la diferencia
+          de rendimiento justifica la diferencia de precio, y escribe tu conclusion en la ficha de evaluacion.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HERRAMIENTA 4: Recurso extra ════════════════ -->
+  <div class="section">
+    <span class="section-label">Recurso adicional — Para explorar</span>
+    <h2 class="section-title">Logical Increments — Presupuesto real, build optimo</h2>
+
+    <div class="tool-card">
+      <div class="tool-card-header naranja">
+        <div>
+          <div class="tool-name">Logical Increments</div>
+          <div class="tool-tipo">Guia de builds por presupuesto — actualizada mensualmente</div>
+          <div class="tool-badges">
+            <span class="tool-badge gratis">Gratis</span>
+            <span class="tool-badge web">Solo navegador</span>
+          </div>
+        </div>
+        <a class="tool-url no-print" href="https://www.logicalincrements.com" target="_blank">logicalincrements.com</a>
+      </div>
+      <div class="tool-body">
+        <p class="tool-desc">
+          Logical Increments ofrece builds de PC pre-disenadas organizadas por presupuesto
+          (desde entry-level hasta enthusiast), actualizadas cada mes con los mejores componentes
+          disponibles en ese momento. Es el recurso de referencia para quien no quiere investigar
+          cada componente por separado y necesita una respuesta rapida: <strong>"con este presupuesto,
+          que es lo mejor que puedo armar?"</strong>
+        </p>
+        <div class="usos-grid">
+          <div class="uso-item">Ver que tan lejos llega tu presupuesto en terminos de rendimiento real</div>
+          <div class="uso-item">Entender por que ciertas combinaciones de CPU + GPU son mas eficientes</div>
+          <div class="uso-item">Comparar tu build del PCPartPicker con la recomendacion oficial del sitio</div>
+          <div class="uso-item">Entender el concepto de "cuellos de botella" con ejemplos visuales</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ══ RESUMEN VISUAL ════════════════════════════════ -->
+  <div class="section">
+    <span class="section-label">Resumen de herramientas</span>
+    <h2 class="section-title">¿Qué herramienta uso para qué?</h2>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Herramienta</th>
+          <th>Para que sirve en una palabra</th>
+          <th>Funciona en movil</th>
+          <th>Requiere instalacion</th>
+          <th>Nivel de dificultad</th>
+          <th>URL directa</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="name-col">PCPartPicker</td>
+          <td>Planear</td>
+          <td class="check">Si</td>
+          <td class="check">No</td>
+          <td>Basico</td>
+          <td><span style="font-family:var(--font-mono);font-size:.78rem;">pcpartpicker.com</span></td>
+        </tr>
+        <tr>
+          <td class="name-col">BuildCores</td>
+          <td>Visualizar 3D</td>
+          <td class="check">Si</td>
+          <td class="check">No</td>
+          <td>Basico</td>
+          <td><span style="font-family:var(--font-mono);font-size:.78rem;">buildcores.com</span></td>
+        </tr>
+        <tr>
+          <td class="name-col">PC Building Sim 2</td>
+          <td>Armar + diagnosticar</td>
+          <td class="cross">No</td>
+          <td>Si (PC)</td>
+          <td>Intermedio</td>
+          <td><span style="font-family:var(--font-mono);font-size:.78rem;">pcbuildingsim.com</span></td>
+        </tr>
+        <tr>
+          <td class="name-col">UserBenchmark</td>
+          <td>Comparar rendimiento</td>
+          <td class="check">Si</td>
+          <td class="check">No</td>
+          <td>Basico</td>
+          <td><span style="font-family:var(--font-mono);font-size:.78rem;">userbenchmark.com</span></td>
+        </tr>
+        <tr>
+          <td class="name-col">Logical Increments</td>
+          <td>Referencia por presupuesto</td>
+          <td class="check">Si</td>
+          <td class="check">No</td>
+          <td>Basico</td>
+          <td><span style="font-family:var(--font-mono);font-size:.78rem;">logicalincrements.com</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ══ ACTIVIDAD DE EVALUACIÓN ════════════════════════ -->
+  <div class="eval-wrapper">
+    <div class="eval-top">
+      <h2>Ficha de evaluacion practica</h2>
+      <div class="eval-top-meta">
+        <span>25 puntos</span>
+        <span>Individual</span>
+        <span>Entregar al finalizar la sesion</span>
+      </div>
+    </div>
+
+    <div class="eval-inner">
+
+      <p style="font-size:.9rem; color:var(--ink-secondary); line-height:1.65; margin-bottom:1.4rem;">
+        Completa esta ficha usando como base el trabajo que realizaste en las herramientas de la sesion.
+        No hay respuestas de opcion multiple: se evalua tu capacidad de conectar lo que observaste con
+        los conceptos de la Unidad 2. Escribe con tus propias palabras.
+      </p>
+
+      <!-- Datos del alumno -->
+      <div class="da-grid">
+        <div class="da-field full">
+          <label class="da-label">Nombre completo</label>
+          <input class="da-input" type="text" placeholder="Apellido paterno, apellido materno, nombre(s)" autocomplete="off">
+        </div>
+        <div class="da-field">
+          <label class="da-label">Matricula</label>
+          <input class="da-input" type="text" autocomplete="off">
+        </div>
+        <div class="da-field">
+          <label class="da-label">Fecha</label>
+          <input class="da-input" type="text" placeholder="dd / mm / aaaa" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 1: Tu build -->
+      <div class="act-block">
+        <div class="act-head">
+          <span class="act-num">Actividad 1</span>
+          <span class="act-titulo">Tu build — Registro de componentes seleccionados</span>
+          <span class="act-pts">8 pts</span>
+        </div>
+        <div class="act-body">
+          <p>
+            Registra los componentes que elegiste en PCPartPicker. Para cada uno escribe el modelo
+            exacto, el precio aproximado en MXN y por que lo elegiste sobre las demas opciones.
+          </p>
+          <table class="build-table">
+            <thead>
+              <tr>
+                <th>Componente</th>
+                <th>Modelo elegido</th>
+                <th>Precio MXN</th>
+                <th>¿Por que este y no otro?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="cat-label">CPU</td><td><input type="text" autocomplete="off"></td><td><input type="text" autocomplete="off" style="width:80px;"></td><td><input type="text" autocomplete="off"></td></tr>
+              <tr><td class="cat-label">Tarjeta madre</td><td><input type="text" autocomplete="off"></td><td><input type="text" autocomplete="off" style="width:80px;"></td><td><input type="text" autocomplete="off"></td></tr>
+              <tr><td class="cat-label">RAM</td><td><input type="text" autocomplete="off"></td><td><input type="text" autocomplete="off" style="width:80px;"></td><td><input type="text" autocomplete="off"></td></tr>
+              <tr><td class="cat-label">GPU</td><td><input type="text" autocomplete="off"></td><td><input type="text" autocomplete="off" style="width:80px;"></td><td><input type="text" autocomplete="off"></td></tr>
+              <tr><td class="cat-label">Storage</td><td><input type="text" autocomplete="off"></td><td><input type="text" autocomplete="off" style="width:80px;"></td><td><input type="text" autocomplete="off"></td></tr>
+              <tr><td class="cat-label">PSU</td><td><input type="text" autocomplete="off"></td><td><input type="text" autocomplete="off" style="width:80px;"></td><td><input type="text" autocomplete="off"></td></tr>
+            </tbody>
+          </table>
+
+          <label class="campo-label-r">URL del build en PCPartPicker (copia y pega)</label>
+          <textarea class="campo-r corto" placeholder="https://pcpartpicker.com/list/..."></textarea>
+
+          <label class="campo-label-r">¿PCPartPicker detectó alguna advertencia de compatibilidad en tu build? ¿Cual y como la resolviste?</label>
+          <textarea class="campo-r" placeholder="Escribe aqui..."></textarea>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 2: Cuello de botella y rendimiento -->
+      <div class="act-block">
+        <div class="act-head">
+          <span class="act-num">Actividad 2</span>
+          <span class="act-titulo">Analisis de rendimiento y cuello de botella</span>
+          <span class="act-pts">7 pts</span>
+        </div>
+        <div class="act-body">
+          <p>
+            Usando UserBenchmark, compara el CPU de tu build con el modelo inmediatamente superior
+            en precio. Responde con base en los datos reales que encontraste.
+          </p>
+
+          <label class="campo-label-r">CPU que elegiste</label>
+          <textarea class="campo-r corto" placeholder="Modelo, frecuencia, nucleos, score en UserBenchmark..."></textarea>
+
+          <label class="campo-label-r">CPU superior en precio (el siguiente nivel)</label>
+          <textarea class="campo-r corto" placeholder="Modelo, diferencia de precio, diferencia de score..."></textarea>
+
+          <label class="campo-label-r">¿La diferencia de rendimiento justifica la diferencia de precio? Explica con los datos que obtuviste.</label>
+          <textarea class="campo-r" placeholder="Escribe tu analisis..."></textarea>
+
+          <label class="campo-label-r">
+            Con la GPU y el CPU que elegiste, ¿UserBenchmark o PCPartPicker indican algun cuello de botella?
+            Si es asi, ¿cual de los dos componentes limita al otro y por que?
+          </label>
+          <textarea class="campo-r" placeholder="Escribe tu analisis..."></textarea>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 3: Conexión con la teoría -->
+      <div class="act-block">
+        <div class="act-head">
+          <span class="act-num">Actividad 3</span>
+          <span class="act-titulo">Conexion con la Unidad 2 — Del hardware al concepto</span>
+          <span class="act-pts">6 pts</span>
+        </div>
+        <div class="act-body">
+          <p>
+            Esta actividad evalua si puedes conectar los componentes fisicos que seleccionaste
+            con los conceptos teoricos de la Unidad 2.
+          </p>
+
+          <label class="campo-label-r">
+            El CPU que elegiste tiene cierta frecuencia de reloj. Explica que significa esa frecuencia
+            en terminos del ciclo de instruccion: ¿cuantos ciclos Fetch-Decode-Execute puede iniciar
+            por segundo ese procesador?
+          </label>
+          <textarea class="campo-r" placeholder="Recuerda: 1 GHz = 1,000,000,000 ciclos por segundo. Calcula y explica."></textarea>
+
+          <label class="campo-label-r">
+            La RAM que elegiste tiene cierta velocidad (ej. DDR5-4800). Explica como se relaciona
+            con el bus de memoria que estudiamos y por que una RAM mas rapida puede mejorar el
+            rendimiento aunque el CPU sea el mismo.
+          </label>
+          <textarea class="campo-r" placeholder="Conecta con el MAR, el MBR y el bus de memoria de la Unidad 2..."></textarea>
+        </div>
+      </div>
+
+      <!-- ACTIVIDAD 4: Reflexión -->
+      <div class="act-block">
+        <div class="act-head">
+          <span class="act-num">Actividad 4</span>
+          <span class="act-titulo">Reflexion — Del simulador de Cisco a las herramientas reales</span>
+          <span class="act-pts">4 pts</span>
+        </div>
+        <div class="act-body">
+          <label class="campo-label-r">
+            ¿Que diferencia notaste entre el simulador de Cisco de la semana pasada y las herramientas
+            de hoy? ¿Cual fue mas util para entender hardware? ¿Por que?
+          </label>
+          <textarea class="campo-r" placeholder="Se honesto. Pueden tener usos distintos y ambas ser validas."></textarea>
+
+          <label class="campo-label-r">
+            De todas las herramientas que exploraste hoy, ¿cual usarias si mañana tuvieras que
+            ayudar a alguien a armar una PC real con un presupuesto limitado? ¿Por que esa y no las demas?
+          </label>
+          <textarea class="campo-r" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Botón imprimir -->
+  <div style="text-align:center; padding: 1.5rem 0 .5rem;" class="no-print">
+    <button
+      onclick="window.print()"
+      style="font-family:var(--font-ui); font-size:.9rem; font-weight:600; padding:.75rem 2.5rem; background:var(--guinda); color:white; border:none; border-radius:var(--radius-md); cursor:pointer; letter-spacing:.03em;">
+      Imprimir / Guardar como PDF
+    </button>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div>
+    <strong>IEDEP</strong> &nbsp;·&nbsp; Instituto de Educación Digital del Estado de Puebla &nbsp;·&nbsp;
+    Arquitectura de Computadoras &nbsp;·&nbsp; Unidad 2 — Sesion practica 2
+  </div>
+  <div>Lic. en Sistemas Computacionales &nbsp;·&nbsp; 2do Cuatrimestre</div>
+</footer>
+
+</body>
+</html>
