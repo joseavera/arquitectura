@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Estudio — Evaluación Sábado 18 de Julio | Arquitectura de Computadoras</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="plantillas/base.css">
+<style>
+
+/* ════════════════════════════════════════════════
+   CUENTA REGRESIVA
+════════════════════════════════════════════════ */
+.countdown-strip {
+  background: var(--guinda);
+  color: white;
+  text-align: center;
+  padding: .8rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.cd-label {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.65);
+}
+.cd-bloques {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+.cd-bloque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+}
+.cd-num {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+.cd-unit {
+  font-family: var(--font-mono);
+  font-size: .55rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.55);
+  margin-top: .1rem;
+}
+.cd-sep {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: rgba(255,255,255,.35);
+  line-height: 1;
+  padding-bottom: .4rem;
+}
+.cd-msg {
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  font-weight: 700;
+  color: #f5c0d0;
+  letter-spacing: .04em;
+}
+
+/* ════════════════════════════════════════════════
+   HERO
+════════════════════════════════════════════════ */
+.guia-hero {
+  background: linear-gradient(160deg, #1a0810 0%, var(--guinda) 55%, #7a2040 100%);
+  padding: 3rem 2rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+/* Decoración geométrica de fondo */
+.guia-hero::before {
+  content: '';
+  position: absolute;
+  right: -60px; bottom: -60px;
+  width: 320px; height: 320px;
+  border: 2px solid rgba(255,255,255,.06);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.guia-hero::after {
+  content: '';
+  position: absolute;
+  right: 40px; bottom: 40px;
+  width: 160px; height: 160px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+/* Grid de puntos decorativa */
+.hero-dots {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+.gh-eyebrow {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.55);
+  margin-bottom: .8rem;
+  position: relative;
+  z-index: 1;
+}
+.gh-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+  font-weight: 700;
+  color: white;
+  line-height: 1.05;
+  max-width: 700px;
+  position: relative;
+  z-index: 1;
+}
+.gh-title em {
+  font-style: normal;
+  color: #f5c0d0;
+  border-bottom: 2px solid rgba(245,192,208,.4);
+}
+.gh-sub {
+  font-size: .97rem;
+  color: rgba(255,255,255,.75);
+  max-width: 600px;
+  margin-top: 1rem;
+  line-height: 1.65;
+  position: relative;
+  z-index: 1;
+}
+.gh-meta {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+.gh-chip {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .3rem .75rem;
+  border: 1.5px solid rgba(255,255,255,.25);
+  color: rgba(255,255,255,.85);
+  border-radius: 2px;
+}
+.gh-chip.accent {
+  background: rgba(245,192,208,.15);
+  border-color: rgba(245,192,208,.4);
+  color: #f5c0d0;
+}
+
+/* ════════════════════════════════════════════════
+   MAPA DE CONTENIDO
+════════════════════════════════════════════════ */
+.mapa-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+  margin: 1.5rem 0;
+}
+@media (max-width:600px) { .mapa-grid { grid-template-columns: 1fr; } }
+.mapa-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: .85rem 1rem;
+  text-decoration: none;
+  transition: all .15s;
+  cursor: pointer;
+}
+.mapa-item:hover {
+  border-color: var(--guinda);
+  background: var(--guinda-light);
+}
+.mapa-num {
+  min-width: 28px;
+  height: 28px;
+  background: var(--guinda);
+  color: white;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.mapa-texto {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+}
+.mapa-titulo {
+  font-family: var(--font-ui);
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.mapa-sub {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  color: var(--ink-muted);
+}
+
+/* ════════════════════════════════════════════════
+   TARJETAS DE CONCEPTO — modo ficha de estudio
+════════════════════════════════════════════════ */
+.ficha-concepto {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  page-break-inside: avoid;
+}
+.fc-header {
+  background: var(--guinda);
+  padding: .75rem 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+.fc-header.u1 { background: var(--guinda); }
+.fc-header.u2 { background: #0d3b6e; }
+.fc-header.hw { background: #0d5c52; }
+.fc-titulo {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.1;
+}
+.fc-unidad {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,.18);
+  color: white;
+  padding: .2rem .6rem;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.fc-body {
+  padding: 1.1rem 1.3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+}
+@media (max-width:600px) { .fc-body { grid-template-columns: 1fr; } }
+.fc-body.single { grid-template-columns: 1fr; }
+
+.fc-col-title {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--guinda);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: .3rem;
+  margin-bottom: .65rem;
+}
+.fc-col-title.azul { color: #0d3b6e; border-bottom-color: #0d3b6e; }
+.fc-col-title.teal { color: #0d5c52; border-bottom-color: #0d5c52; }
+
+.fc-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+.fc-lista li {
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--ink);
+  display: flex;
+  align-items: flex-start;
+  gap: .55rem;
+}
+.fc-lista li::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--guinda);
+  flex-shrink: 0;
+  margin-top: .42rem;
+}
+.fc-lista li .clave {
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--guinda-dark);
+  flex-shrink: 0;
+}
+.fc-lista li .clave.azul { color: #0d3b6e; }
+.fc-lista li .clave.teal { color: #0d5c52; }
+
+/* Bloque de fórmula / dato técnico */
+.dato-tecnico {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--guinda);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: .6rem 1rem;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--guinda-dark);
+  margin: .5rem 0;
+  line-height: 1.65;
+}
+.dato-tecnico.azul { border-left-color: #0d3b6e; color: #0d3b6e; }
+.dato-tecnico.teal { border-left-color: #0d5c52; color: #0d5c52; }
+
+/* Analogía */
+.analogia {
+  background: var(--guinda-light);
+  border: 1px solid #D8A8BA;
+  border-radius: var(--radius-md);
+  padding: .85rem 1.1rem;
+  font-size: .88rem;
+  color: var(--ink);
+  line-height: 1.6;
+  margin: .65rem 0;
+  grid-column: 1 / -1;
+}
+.analogia .an-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--guinda);
+  margin-bottom: .3rem;
+}
+
+/* ════════════════════════════════════════════════
+   PREGUNTAS DE REPASO RÁPIDO
+════════════════════════════════════════════════ */
+.repaso-wrapper {
+  background: #1a1218;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: 2rem 0;
+}
+.repaso-header {
+  background: #2a1a22;
+  padding: .75rem 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.repaso-title {
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #f0c8d0;
+}
+.repaso-instruccion {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  color: rgba(255,255,255,.4);
+  font-style: italic;
+}
+.repaso-lista {
+  padding: .75rem 1.3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.repaso-q {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .65rem .9rem;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s;
+}
+.repaso-q:hover { background: rgba(255,255,255,.04); }
+.rq-num {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  font-weight: 700;
+  color: rgba(245,192,208,.6);
+  min-width: 20px;
+  flex-shrink: 0;
+  margin-top: .05rem;
+}
+.rq-texto {
+  font-size: .88rem;
+  color: #c8b0b8;
+  line-height: 1.55;
+}
+.rq-texto strong { color: #f0c8d0; }
+.rq-respuesta {
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: transparent;
+  background: rgba(255,255,255,.07);
+  border-radius: 2px;
+  padding: .1rem .4rem;
+  cursor: pointer;
+  transition: color .2s;
+  user-select: none;
+  margin-top: .25rem;
+  display: inline-block;
+}
+.rq-respuesta:hover { color: #a0e0a8; }
+.rq-respuesta::before { content: 'Ver respuesta'; color: rgba(160,224,168,.5); font-size: .65rem; margin-right: .4rem; }
+.rq-respuesta:hover::before { display: none; }
+
+/* ════════════════════════════════════════════════
+   TABLA DE FLAGS
+════════════════════════════════════════════════ */
+.flags-visual {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  margin: 1rem 0;
+}
+@media (max-width:500px) { .flags-visual { grid-template-columns: 1fr 1fr; } }
+.flag-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: .85rem .7rem;
+  text-align: center;
+  transition: all .2s;
+  cursor: default;
+}
+.flag-card:hover { border-color: var(--guinda); background: var(--guinda-light); }
+.flag-nombre {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--guinda);
+  display: block;
+  margin-bottom: .3rem;
+}
+.flag-largo {
+  font-family: var(--font-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--ink);
+  display: block;
+  margin-bottom: .4rem;
+}
+.flag-cuando {
+  font-size: .78rem;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+
+/* ════════════════════════════════════════════════
+   CICLO DE INSTRUCCIÓN — diagrama visual
+════════════════════════════════════════════════ */
+.ciclo-visual {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 1.2rem 0;
+  overflow-x: auto;
+}
+.ciclo-fase {
+  flex: 1;
+  min-width: 100px;
+  background: white;
+  border: 1.5px solid var(--border);
+  border-right: none;
+  padding: .9rem .7rem;
+  text-align: center;
+  position: relative;
+}
+.ciclo-fase:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.ciclo-fase:last-child { border-right: 1.5px solid var(--border); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.ciclo-fase-num {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  margin-bottom: .25rem;
+}
+.ciclo-fase-nombre {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--guinda);
+  margin-bottom: .3rem;
+  line-height: 1;
+}
+.ciclo-fase-desc {
+  font-size: .75rem;
+  color: var(--ink-secondary);
+  line-height: 1.45;
+}
+.ciclo-fase-reg {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  color: var(--guinda-dark);
+  font-weight: 600;
+  margin-top: .4rem;
+  background: var(--guinda-light);
+  padding: .1rem .35rem;
+  border-radius: 2px;
+  display: inline-block;
+}
+.ciclo-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 .2rem;
+  color: var(--border2);
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════════
+   TABLA DE REGISTROS
+════════════════════════════════════════════════ */
+.regs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: .5rem;
+  margin: 1rem 0;
+}
+.reg-card {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: .75rem 1rem;
+  background: white;
+  transition: border-color .15s;
+}
+.reg-card:hover { border-color: var(--guinda); }
+.reg-card .rn {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--guinda);
+  display: block;
+  margin-bottom: .2rem;
+}
+.reg-card .rl {
+  font-family: var(--font-ui);
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: .2rem;
+}
+.reg-card .rd {
+  font-size: .78rem;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+.reg-card .rt {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  color: var(--guinda-dark);
+  font-style: italic;
+  margin-top: .3rem;
+  display: block;
+}
+
+/* ════════════════════════════════════════════════
+   COMPONENTES DE HARDWARE — galería
+════════════════════════════════════════════════ */
+.hw-galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: .6rem;
+  margin: 1rem 0;
+}
+.hw-item {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: .9rem .85rem;
+  transition: all .15s;
+}
+.hw-item:hover { border-color: #0d5c52; background: var(--surface); }
+.hw-sigla {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0d5c52;
+  display: block;
+  margin-bottom: .25rem;
+}
+.hw-nombre {
+  font-family: var(--font-ui);
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: .2rem;
+}
+.hw-desc {
+  font-size: .78rem;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+.hw-dato {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  color: #0d5c52;
+  font-weight: 600;
+  margin-top: .35rem;
+  display: block;
+}
+
+/* ════════════════════════════════════════════════
+   REGLAS DE ORO
+════════════════════════════════════════════════ */
+.reglas-oro {
+  counter-reset: regla;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin: 1rem 0;
+}
+.regla-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .9rem;
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: .85rem 1rem;
+  counter-increment: regla;
+  transition: border-color .15s;
+}
+.regla-item:hover { border-color: var(--guinda); }
+.regla-n {
+  min-width: 32px;
+  height: 32px;
+  background: var(--guinda);
+  color: white;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.regla-texto {
+  font-size: .9rem;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.regla-texto strong { color: var(--guinda-dark); }
+
+/* ════════════════════════════════════════════════
+   TRUCO MNEMÓNICO
+════════════════════════════════════════════════ */
+.mnemonic {
+  background: #1a1218;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin: 1.25rem 0;
+}
+.mn-label {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(245,192,208,.6);
+  margin-bottom: .65rem;
+}
+.mn-content {
+  font-family: var(--font-mono);
+  font-size: .92rem;
+  color: #c8b0b8;
+  line-height: 1.75;
+}
+.mn-content .hl { color: #f0c8d0; font-weight: 700; font-size: 1rem; }
+.mn-content .ok { color: #a0e0a8; }
+.mn-content .nd { color: #a8c8e8; }
+
+/* ════════════════════════════════════════════════
+   SECCIÓN "QUÉ ENTRA EN LA EVALUACIÓN"
+════════════════════════════════════════════════ */
+.eval-mapa {
+  background: var(--guinda);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: 2rem 0;
+}
+.em-header {
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.em-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+}
+.em-sub {
+  font-size: .85rem;
+  color: rgba(255,255,255,.65);
+  margin-top: .25rem;
+}
+.em-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+@media (max-width:600px) { .em-body { grid-template-columns: 1fr; } }
+.em-col {
+  padding: 1.2rem 1.5rem;
+  border-right: 1px solid rgba(255,255,255,.1);
+}
+.em-col:last-child { border-right: none; }
+.em-col-title {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.55);
+  margin-bottom: .75rem;
+  padding-bottom: .35rem;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.em-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  margin-bottom: .6rem;
+  font-size: .88rem;
+  color: rgba(255,255,255,.82);
+  line-height: 1.5;
+}
+.em-check {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid rgba(255,255,255,.35);
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-top: .1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.em-pts {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  color: #f5c0d0;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding-left: .5rem;
+}
+
+/* ════════════════════════════════════════════════
+   BARRA DE PROGRESO DE ESTUDIO
+════════════════════════════════════════════════ */
+.progreso-estudio {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+}
+.pe-title {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--guinda);
+  margin-bottom: 1rem;
+}
+.pe-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .65rem;
+}
+.pe-item:last-child { margin-bottom: 0; }
+.pe-check-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--guinda);
+  border-radius: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  -webkit-user-select: none; user-select: none;
+}
+.pe-check-box.checked { background: var(--guinda); }
+.pe-check-box.checked::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 1px;
+  width: 8px; height: 5px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg);
+}
+.pe-texto {
+  font-size: .9rem;
+  color: var(--ink);
+  line-height: 1.5;
+  flex: 1;
+}
+.pe-bar-track {
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-top: 1.1rem;
+  overflow: hidden;
+}
+.pe-bar-fill {
+  height: 100%;
+  background: var(--guinda);
+  border-radius: 3px;
+  width: 0%;
+  transition: width .4s ease;
+}
+.pe-progreso-label {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  color: var(--ink-muted);
+  margin-top: .35rem;
+  text-align: right;
+}
+
+/* ════════════════════════════════════════════════
+   MISC
+════════════════════════════════════════════════ */
+@media print {
+  .countdown-strip { display: none; }
+  .repaso-q .rq-respuesta { color: #a0e0a8 !important; }
+  body { -webkit-user-select: text; user-select: text; }
+  .progreso-estudio { display: none; }
+}
+
+.truco-box {
+  border: 2px dashed var(--guinda);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+  background: var(--guinda-light);
+  grid-column: 1 / -1;
+}
+.truco-label {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--guinda);
+  display: block;
+  margin-bottom: .4rem;
+}
+.truco-texto {
+  font-size: .9rem;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.truco-texto strong { color: var(--guinda-dark); }
+</style>
+</head>
+<body>
+
+<!-- CUENTA REGRESIVA -->
+<div class="countdown-strip" id="countdown-strip">
+  <span class="cd-label">Evaluación en</span>
+  <div class="cd-bloques">
+    <div class="cd-bloque"><span class="cd-num" id="cd-d">--</span><span class="cd-unit">días</span></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-bloque"><span class="cd-num" id="cd-h">--</span><span class="cd-unit">horas</span></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-bloque"><span class="cd-num" id="cd-m">--</span><span class="cd-unit">min</span></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-bloque"><span class="cd-num" id="cd-s">--</span><span class="cd-unit">seg</span></div>
+  </div>
+  <span class="cd-msg" id="cd-msg">Sábado 18 de julio · 8:00 a.m.</span>
+</div>
+
+<!-- Header institucional -->
+<header class="site-header">
+  <div class="logo-wrap">
+    <img src="plantillas/imagen1.png" alt="IEDEP">
+  </div>
+  <div class="header-text">
+    <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+    <span class="doc-title">Arquitectura de Computadoras &nbsp;|&nbsp; Guía de Estudio &nbsp;|&nbsp; Evaluación 18 julio 2026</span>
+  </div>
+  <div class="logo-wrap" style="margin-left:auto;">
+    <img src="plantillas/imagen2.png" alt="" style="height:48px;opacity:.85;">
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="guia-hero">
+  <div class="hero-dots"></div>
+  <div class="gh-eyebrow">Licenciatura en Sistemas Computacionales · 2do Cuatrimestre</div>
+  <h1 class="gh-title">Todo lo que necesitas<br>saber para el <em>sábado</em></h1>
+  <p class="gh-sub">
+    Esta guía cubre las Unidades 1 y 2 completas: desde las generaciones de las computadoras
+    hasta los flags de la ALU, pasando por los registros, el ciclo de instrucción y los
+    componentes físicos de hardware. Léela despacio, haz los repasos y marca cada tema conforme
+    lo domines.
+  </p>
+  <div class="gh-meta">
+    <span class="gh-chip">Unidades 1 y 2</span>
+    <span class="gh-chip">Evaluación sábado 18 jul</span>
+    <span class="gh-chip accent">Lee · Practica · Domina</span>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- MAPA DE CONTENIDO -->
+  <div class="section">
+    <span class="section-label">Antes de empezar</span>
+    <h2 class="section-title">¿Qué entra en la evaluación del sábado?</h2>
+
+    <div class="eval-mapa">
+      <div class="em-header">
+        <div class="em-title">Mapa de la evaluación</div>
+        <div class="em-sub">Todo lo que ves aquí puede aparecer el sábado. Sin sorpresas.</div>
+      </div>
+      <div class="em-body">
+        <div class="em-col">
+          <div class="em-col-title">Unidad 1 — Evolución y estructura</div>
+          <div class="em-item"><div class="em-check"></div><span>Generaciones de las computadoras (1ra a 5ta)</span><span class="em-pts">5 pts</span></div>
+          <div class="em-item"><div class="em-check"></div><span>Von Neumann vs. Arquitectura Harvard</span><span class="em-pts">5 pts</span></div>
+          <div class="em-item"><div class="em-check"></div><span>Organización vs. Arquitectura (ISA)</span><span class="em-pts">5 pts</span></div>
+          <div class="em-item"><div class="em-check"></div><span>Bus del sistema: datos, direcciones y control</span><span class="em-pts">5 pts</span></div>
+          <div class="em-item"><div class="em-check"></div><span>Jerarquía de interconexiones (4 niveles)</span><span class="em-pts">5 pts</span></div>
+        </div>
+        <div class="em-col">
+          <div class="em-col-title">Unidad 2 — La CPU</div>
+          <div class="em-item"><div class="em-check"></div><span>Estructura interna: ALU, UC y Registros</span><span class="em-pts">10 pts</span></div>
+          <div class="em-item"><div class="em-check"></div><span>Registros internos: PC, IR, MAR, MBR, AX–DX</span><span class="em-pts">10 pts</span></div>
+          <div class="em-item"><div class="em-check"></div><span>Ciclo de instrucción: Fetch → Decode → Execute → Write-back</span><span class="em-pts">15 pts</span></div>
+          <div class="em-item"><div class="em-check"></div><span>Operaciones y flags (ZF, CF, SF, OF)</span><span class="em-pts">10 pts</span></div>
+          <div class="em-item"><div class="em-check"></div><span>Componentes físicos de hardware (CPU, RAM, PSU…)</span><span class="em-pts">5 pts</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guía de navegación -->
+    <div class="mapa-grid">
+      <a class="mapa-item" href="#u1-generaciones">
+        <div class="mapa-num">1</div>
+        <div class="mapa-texto"><span class="mapa-titulo">Generaciones y Von Neumann</span><span class="mapa-sub">Unidad 1 · Temas 1.1 y 1.2</span></div>
+      </a>
+      <a class="mapa-item" href="#u1-arquitectura">
+        <div class="mapa-num">2</div>
+        <div class="mapa-texto"><span class="mapa-titulo">Organización, bus y jerarquía</span><span class="mapa-sub">Unidad 1 · Temas 1.3 y 1.4</span></div>
+      </a>
+      <a class="mapa-item" href="#u2-estructura">
+        <div class="mapa-num">3</div>
+        <div class="mapa-texto"><span class="mapa-titulo">Estructura interna de la CPU</span><span class="mapa-sub">Unidad 2 · Tema 2.1</span></div>
+      </a>
+      <a class="mapa-item" href="#u2-registros">
+        <div class="mapa-num">4</div>
+        <div class="mapa-texto"><span class="mapa-titulo">Registros internos</span><span class="mapa-sub">Unidad 2 · Tema 2.1</span></div>
+      </a>
+      <a class="mapa-item" href="#u2-ciclo">
+        <div class="mapa-num">5</div>
+        <div class="mapa-texto"><span class="mapa-titulo">Ciclo de instrucción</span><span class="mapa-sub">Unidad 2 · Tema 2.2</span></div>
+      </a>
+      <a class="mapa-item" href="#u2-flags">
+        <div class="mapa-num">6</div>
+        <div class="mapa-texto"><span class="mapa-titulo">Operaciones y flags</span><span class="mapa-sub">Unidad 2 · Tema 2.2</span></div>
+      </a>
+      <a class="mapa-item" href="#hardware">
+        <div class="mapa-num">7</div>
+        <div class="mapa-texto"><span class="mapa-titulo">Componentes físicos</span><span class="mapa-sub">Sesiones prácticas</span></div>
+      </a>
+      <a class="mapa-item" href="#reglas">
+        <div class="mapa-num">8</div>
+        <div class="mapa-texto"><span class="mapa-titulo">Reglas de oro</span><span class="mapa-sub">Lo que no debes olvidar</span></div>
+      </a>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ════════════════════════
+       TEMA 1: GENERACIONES
+  ════════════════════════ -->
+  <div class="section" id="u1-generaciones">
+    <span class="section-label">Unidad 1 · Temas 1.1 y 1.2</span>
+    <h2 class="section-title">Generaciones de las computadoras y los dos grandes modelos</h2>
+
+    <div class="ficha-concepto">
+      <div class="fc-header u1">
+        <div class="fc-titulo">Las 5 generaciones</div>
+        <span class="fc-unidad">Tema 1.1</span>
+      </div>
+      <div class="fc-body">
+        <div>
+          <div class="fc-col-title">Qué debes recordar de cada una</div>
+          <ul class="fc-lista">
+            <li><span class="clave">1ra</span> Válvulas de vacío. ENIAC (1945). Enorme, lenta, se quemaba constantemente.</li>
+            <li><span class="clave">2da</span> Transistores (1950s–60s). Más pequeña, más rápida, menos calor.</li>
+            <li><span class="clave">3ra</span> Circuitos integrados (1960s–70s). Muchos transistores en un solo chip.</li>
+            <li><span class="clave">4ta</span> Microprocesadores. Intel 4004 (1971). La CPU en un solo chip. Era actual.</li>
+            <li><span class="clave">5ta</span> IA, GPUs masivas, computación cuántica. Procesamiento paralelo extremo.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="fc-col-title">Von Neumann vs. Harvard</div>
+          <ul class="fc-lista">
+            <li><span class="clave">VN</span> Una sola memoria para datos e instrucciones. Un bus compartido. Cuello de botella clásico.</li>
+            <li><span class="clave">HV</span> Memorias separadas para datos e instrucciones. Buses independientes. Más rápido.</li>
+            <li><span class="clave">VN hoy</span> PCs, servidores, laptops.</li>
+            <li><span class="clave">HV hoy</span> Microcontroladores, DSP, algunos procesadores modernos de señal.</li>
+          </ul>
+          <div class="dato-tecnico">Von Neumann: 1 bus = 1 camino = cuello de botella.<br>Harvard: 2 buses = 2 caminos = puede leer datos e instrucciones al mismo tiempo.</div>
+        </div>
+        <div class="truco-box">
+          <span class="truco-label">Truco mnemónico — Las generaciones</span>
+          <p class="truco-texto">
+            <strong>V</strong>álvulas · <strong>T</strong>ransistores · <strong>C</strong>ircuitos · <strong>M</strong>icroprocesadores · <strong>I</strong>A<br>
+            Recuérdalo como: <strong>"Varias Tecnologías Crean Máquinas Inteligentes"</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="repaso-wrapper">
+      <div class="repaso-header">
+        <span class="repaso-title">Repaso rápido — Generaciones y modelos</span>
+        <span class="repaso-instruccion">Pasa el cursor sobre "Ver respuesta" para revelarla</span>
+      </div>
+      <div class="repaso-lista">
+        <div class="repaso-q">
+          <span class="rq-num">01</span>
+          <div>
+            <div class="rq-texto">¿Qué tecnología caracteriza a la <strong>segunda generación</strong> de computadoras?</div>
+            <span class="rq-respuesta">Transistores — reemplazaron a las válvulas de vacío. Más pequeños, más rápidos, menos calor.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">02</span>
+          <div>
+            <div class="rq-texto">¿Por qué el modelo Von Neumann produce un <strong>"cuello de botella"</strong>?</div>
+            <span class="rq-respuesta">Porque datos e instrucciones comparten el mismo bus. No pueden transferirse simultáneamente, lo que limita la velocidad.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">03</span>
+          <div>
+            <div class="rq-texto">¿Cuál es la diferencia principal entre Von Neumann y Harvard?</div>
+            <span class="rq-respuesta">Harvard tiene memorias y buses separados para datos e instrucciones. Von Neumann los unifica en uno solo.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ════════════════════════
+       TEMA 2: ORGANIZACIÓN / BUS
+  ════════════════════════ -->
+  <div class="section" id="u1-arquitectura">
+    <span class="section-label">Unidad 1 · Temas 1.3 y 1.4</span>
+    <h2 class="section-title">Organización vs. Arquitectura — El bus del sistema y su jerarquía</h2>
+
+    <div class="ficha-concepto">
+      <div class="fc-header u1">
+        <div class="fc-titulo">Organización vs. Arquitectura (ISA)</div>
+        <span class="fc-unidad">Tema 1.3</span>
+      </div>
+      <div class="fc-body">
+        <div>
+          <div class="fc-col-title">Arquitectura (ISA)</div>
+          <ul class="fc-lista">
+            <li>Lo que <strong>ve el programador</strong>: instrucciones disponibles, tipos de datos, registros accesibles.</li>
+            <li>Responde a: <strong>¿qué puede hacer?</strong></li>
+            <li>Ejemplos de ISA: x86-64, ARM, RISC-V, MIPS.</li>
+            <li>Dos CPUs con la misma ISA ejecutan el mismo software aunque sean físicamente distintas.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="fc-col-title">Organización (Microarquitectura)</div>
+          <ul class="fc-lista">
+            <li>La <strong>implementación física</strong> de la ISA: circuitos, voltajes, pipeline, frecuencia.</li>
+            <li>Responde a: <strong>¿cómo lo hace?</strong></li>
+            <li>Es invisible para el programador.</li>
+            <li>Ejemplo: Intel Pentium y Core i9 comparten ISA x86-64 pero su organización es completamente diferente.</li>
+          </ul>
+        </div>
+        <div class="truco-box">
+          <span class="truco-label">La regla de los dos mundos</span>
+          <p class="truco-texto">
+            <strong>Arquitectura = el contrato.</strong> Define qué instrucciones existen.<br>
+            <strong>Organización = la implementación.</strong> Define cómo se ejecutan físicamente.<br>
+            Un programador vive en la arquitectura. Un diseñador de hardware vive en la organización.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ficha-concepto">
+      <div class="fc-header u1">
+        <div class="fc-titulo">El bus del sistema y la jerarquía de interconexiones</div>
+        <span class="fc-unidad">Tema 1.4</span>
+      </div>
+      <div class="fc-body">
+        <div>
+          <div class="fc-col-title">Los tres sub-buses</div>
+          <ul class="fc-lista">
+            <li><span class="clave">Bus de datos</span> Transporta los datos. Bidireccional. Su ancho (64 bits) define cuánta info pasa por ciclo.</li>
+            <li><span class="clave">Bus de dir.</span> Indica la dirección de memoria. Unidireccional (CPU → RAM). Su ancho define el espacio máximo de RAM.</li>
+            <li><span class="clave">Bus de ctrl.</span> Coordina todo: señales READ, WRITE, IRQ, CLOCK, RESET.</li>
+          </ul>
+          <div class="dato-tecnico">Bus de 48 bits de dirección → 2⁴⁸ = 256 TB de memoria máxima direccionable.</div>
+        </div>
+        <div>
+          <div class="fc-col-title">Los 4 niveles de jerarquía</div>
+          <ul class="fc-lista">
+            <li><span class="clave">Nivel 1</span> CPU ↔ Caché L1/L2/L3 — GHz, hasta 512 bits. El más rápido.</li>
+            <li><span class="clave">Nivel 2</span> CPU ↔ RAM — DDR5, 64 bits, ~51 GB/s.</li>
+            <li><span class="clave">Nivel 3</span> Chipset ↔ GPU / SSD — PCIe 5.0, hasta 64 GB/s.</li>
+            <li><span class="clave">Nivel 4</span> Bus de expansión — USB, Thunderbolt, SATA. El más lento.</li>
+          </ul>
+          <div class="dato-tecnico">Regla de oro: más cerca del CPU = más rápido + más caro por GB.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="repaso-wrapper">
+      <div class="repaso-header">
+        <span class="repaso-title">Repaso rápido — Bus y jerarquía</span>
+        <span class="repaso-instruccion">Pasa el cursor sobre "Ver respuesta" para revelarla</span>
+      </div>
+      <div class="repaso-lista">
+        <div class="repaso-q">
+          <span class="rq-num">04</span>
+          <div>
+            <div class="rq-texto">¿Qué tipo de bus indica <strong>dónde</strong> se encuentra el dato en memoria?</div>
+            <span class="rq-respuesta">El bus de direcciones. Es unidireccional (solo CPU → memoria) y determina el espacio de RAM direccionable.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">05</span>
+          <div>
+            <div class="rq-texto">¿En qué nivel de la jerarquía se conecta la tarjeta gráfica (GPU)?</div>
+            <span class="rq-respuesta">Nivel 3 — a través de PCIe 5.0, conectada al chipset. Velocidad de hasta 64 GB/s.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">06</span>
+          <div>
+            <div class="rq-texto">Un procesador Intel Core i9 y un Pentium 4 comparten la ISA x86. ¿Eso significa que tienen la misma organización?</div>
+            <span class="rq-respuesta">No. Comparten arquitectura (el "qué"), pero su organización (el "cómo") es completamente diferente: frecuencia, pipeline, caché, proceso de fabricación.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ════════════════════════
+       TEMA 3: ESTRUCTURA CPU
+  ════════════════════════ -->
+  <div class="section" id="u2-estructura">
+    <span class="section-label">Unidad 2 · Tema 2.1</span>
+    <h2 class="section-title">Estructura interna de la CPU</h2>
+
+    <div class="ficha-concepto">
+      <div class="fc-header u2">
+        <div class="fc-titulo">Los tres componentes fundamentales</div>
+        <span class="fc-unidad">Unidad 2</span>
+      </div>
+      <div class="fc-body single">
+        <div class="fc-col-title azul">Quién hace qué dentro del procesador</div>
+        <ul class="fc-lista">
+          <li><span class="clave azul">ALU</span> Unidad Aritmético-Lógica. Hace las cuentas: sumas, restas, multiplicaciones, comparaciones, AND, OR, XOR. Es la calculadora del sistema.</li>
+          <li><span class="clave azul">UC</span> Unidad de Control. Coordina a todos los demás. Lee cada instrucción, entiende qué significa y activa las señales correctas. Es la directora de orquesta.</li>
+          <li><span class="clave azul">Registros</span> Pequeños espacios de almacenamiento ultrarápidos dentro del propio chip. Un registro se accede en 1 ciclo de reloj, sin latencia adicional. Son la memoria más rápida del sistema.</li>
+        </ul>
+        <div class="dato-tecnico azul">
+          Velocidad de acceso: Registros (1 ciclo) → Caché L1 (4-5 ciclos) → RAM (100+ ciclos) → Disco (millones de ciclos).
+        </div>
+        <div class="analogia" style="margin-top:.75rem;">
+          <span class="an-label">Analogía</span>
+          La CPU es como una cocina profesional. La <strong>ALU</strong> es el cocinero que prepara los platillos.
+          La <strong>Unidad de Control</strong> es el chef ejecutivo que da órdenes y coordina los tiempos.
+          Los <strong>registros</strong> son la mesa de trabajo donde reposan los ingredientes mientras se usan —
+          pequeña pero al alcance inmediato de la mano.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ════════════════════════
+       TEMA 4: REGISTROS
+  ════════════════════════ -->
+  <div class="section" id="u2-registros">
+    <span class="section-label">Unidad 2 · Tema 2.1</span>
+    <h2 class="section-title">Registros internos — cada uno tiene un trabajo específico</h2>
+
+    <div class="regs-grid">
+      <div class="reg-card">
+        <span class="rn">PC</span>
+        <div class="rl">Program Counter</div>
+        <div class="rd">Apunta siempre a la dirección de la <strong>siguiente instrucción</strong> que se ejecutará. Se incrementa automáticamente después de cada Fetch.</div>
+        <span class="rt">"¿A dónde voy después?"</span>
+      </div>
+      <div class="reg-card">
+        <span class="rn">IR</span>
+        <div class="rl">Instruction Register</div>
+        <div class="rd">Guarda la instrucción que se está ejecutando <strong>en este momento</strong>. La UC la decodifica desde aquí.</div>
+        <span class="rt">"¿Qué estoy haciendo ahora?"</span>
+      </div>
+      <div class="reg-card">
+        <span class="rn">MAR</span>
+        <div class="rl">Memory Address Register</div>
+        <div class="rd">Contiene la <strong>dirección de memoria</strong> a la que se va a acceder para leer o escribir. Se conecta al bus de direcciones.</div>
+        <span class="rt">"¿A qué dirección voy?" — la A es de Address.</span>
+      </div>
+      <div class="reg-card">
+        <span class="rn">MBR</span>
+        <div class="rl">Memory Buffer Register</div>
+        <div class="rd">Almacena temporalmente el <strong>dato</strong> que llegó de memoria o que está a punto de escribirse en ella. Se conecta al bus de datos.</div>
+        <span class="rt">"¿Qué traje de regreso?" — la B es de Buffer.</span>
+      </div>
+      <div class="reg-card">
+        <span class="rn">AX</span>
+        <div class="rl">Accumulator / General</div>
+        <div class="rd">Registro de propósito general. Almacena operandos y resultados de la ALU. El más usado en operaciones aritméticas.</div>
+        <span class="rt">Junto con BX, CX y DX: los 4 registros de uso libre.</span>
+      </div>
+      <div class="reg-card">
+        <span class="rn">BX CX DX</span>
+        <div class="rl">Propósito general</div>
+        <div class="rd">Igual que AX: almacenan cualquier valor durante la ejecución. El programador los usa libremente como "variables de trabajo" del procesador.</div>
+        <span class="rt">"Hojas en blanco para anotar lo que necesites."</span>
+      </div>
+      <div class="reg-card">
+        <span class="rn">FLAGS</span>
+        <div class="rl">Registro de estado</div>
+        <div class="rd">Contiene bits de estado que reflejan el resultado de la última operación de la ALU: ZF, CF, SF, OF. Nunca se modifica por MOV.</div>
+        <span class="rt">"Los indicadores del tablero — avisos del motor."</span>
+      </div>
+    </div>
+
+    <div class="mnemonic">
+      <div class="mn-label">Truco para no confundir MAR y MBR</div>
+      <div class="mn-content">
+        <span class="hl">MAR</span> → la <span class="ok">A</span> es de <span class="ok">Address</span> → guarda una <span class="ok">dirección</span><br>
+        <span class="hl">MBR</span> → la <span class="nd">B</span> es de <span class="nd">Buffer</span> → guarda un <span class="nd">dato</span><br><br>
+        En el ciclo: primero va el <span class="hl">MAR</span> ("voy a esta dirección"), luego viene el <span class="hl">MBR</span> ("traje este dato").
+      </div>
+    </div>
+
+    <div class="repaso-wrapper">
+      <div class="repaso-header">
+        <span class="repaso-title">Repaso rápido — Registros</span>
+        <span class="repaso-instruccion">Pasa el cursor sobre "Ver respuesta" para revelarla</span>
+      </div>
+      <div class="repaso-lista">
+        <div class="repaso-q">
+          <span class="rq-num">07</span>
+          <div>
+            <div class="rq-texto">¿Cuántos ciclos de reloj se necesitan para acceder a un registro interno de la CPU?</div>
+            <span class="rq-respuesta">1 ciclo de reloj, sin latencia adicional. Es la forma de acceso más rápida del sistema.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">08</span>
+          <div>
+            <div class="rq-texto">¿El PC guarda la instrucción actual o la siguiente?</div>
+            <span class="rq-respuesta">La siguiente. La instrucción actual la guarda el IR. El PC ya apuntó hacia adelante durante el Fetch.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">09</span>
+          <div>
+            <div class="rq-texto">¿Qué hace AX que no puede hacer MAR?</div>
+            <span class="rq-respuesta">AX puede guardar cualquier dato de propósito general (resultado de operaciones, valores del programa). MAR solo guarda direcciones de memoria y está conectado al bus de direcciones.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ════════════════════════
+       TEMA 5: CICLO
+  ════════════════════════ -->
+  <div class="section" id="u2-ciclo">
+    <span class="section-label">Unidad 2 · Tema 2.2</span>
+    <h2 class="section-title">El ciclo de instrucción — la secuencia que nunca para</h2>
+
+    <p>
+      La CPU repite estas cuatro fases sin detenerse desde que se enciende el sistema hasta que se apaga.
+      Cada instrucción de cada programa pasa exactamente por este mismo camino.
+    </p>
+
+    <!-- Diagrama visual del ciclo -->
+    <div class="ciclo-visual">
+      <div class="ciclo-fase">
+        <div class="ciclo-fase-num">Fase 1</div>
+        <div class="ciclo-fase-nombre">Fetch</div>
+        <div class="ciclo-fase-desc">La UC lee la instrucción en la dirección que indica el PC y la carga en el IR. El PC avanza.</div>
+        <div class="ciclo-fase-reg">PC · MAR · MBR · IR</div>
+      </div>
+      <div class="ciclo-arrow">→</div>
+      <div class="ciclo-fase">
+        <div class="ciclo-fase-num">Fase 2</div>
+        <div class="ciclo-fase-nombre">Decode</div>
+        <div class="ciclo-fase-desc">La UC analiza el opcode del IR: identifica qué operación es y qué registros involucra.</div>
+        <div class="ciclo-fase-reg">IR · UC</div>
+      </div>
+      <div class="ciclo-arrow">→</div>
+      <div class="ciclo-fase">
+        <div class="ciclo-fase-num">Fase 3</div>
+        <div class="ciclo-fase-nombre">Execute</div>
+        <div class="ciclo-fase-desc">La ALU realiza la operación. Si involucra aritmética o lógica, los FLAGS se actualizan en paralelo.</div>
+        <div class="ciclo-fase-reg">ALU · FLAGS</div>
+      </div>
+      <div class="ciclo-arrow">→</div>
+      <div class="ciclo-fase">
+        <div class="ciclo-fase-num">Fase 4</div>
+        <div class="ciclo-fase-nombre">Write-back</div>
+        <div class="ciclo-fase-desc">El resultado se escribe en el registro destino (o en memoria si la instrucción lo requiere).</div>
+        <div class="ciclo-fase-reg">AX / BX / CX / DX</div>
+      </div>
+    </div>
+
+    <div class="ficha-concepto">
+      <div class="fc-header u2">
+        <div class="fc-titulo">Ejemplo completo — ADD AX, BX  (con AX=8, BX=4)</div>
+        <span class="fc-unidad">Traza paso a paso</span>
+      </div>
+      <div class="fc-body single">
+        <div class="fc-col-title azul">Qué ocurre en cada fase</div>
+        <ul class="fc-lista">
+          <li><span class="clave azul">Fetch</span> PC = 0x0004 → MAR ← 0x0004 → memoria devuelve "ADD AX, BX" → MBR ← instrucción → IR ← instrucción → PC ← 0x0006.</li>
+          <li><span class="clave azul">Decode</span> La UC lee el IR: opcode = ADD, destino = AX, fuente = BX. Activa las señales para leer ambos registros.</li>
+          <li><span class="clave azul">Execute</span> ALU recibe 8 y 4. Calcula 8 + 4 = 12. Actualiza FLAGS: ZF=0 (no es cero), SF=0 (positivo), CF=0, OF=0.</li>
+          <li><span class="clave azul">Write-back</span> El resultado 12 se escribe en AX. AX queda con valor 12. BX no cambia (era solo fuente).</li>
+        </ul>
+        <div class="dato-tecnico azul">Resultado final: AX = 12. BX = 4 (sin cambio). FLAGS: todos en 0.</div>
+      </div>
+    </div>
+
+    <div class="repaso-wrapper">
+      <div class="repaso-header">
+        <span class="repaso-title">Repaso rápido — Ciclo de instrucción</span>
+        <span class="repaso-instruccion">Pasa el cursor sobre "Ver respuesta" para revelarla</span>
+      </div>
+      <div class="repaso-lista">
+        <div class="repaso-q">
+          <span class="rq-num">10</span>
+          <div>
+            <div class="rq-texto">¿En qué fase actúa la ALU?</div>
+            <span class="rq-respuesta">Execute (Ejecución). Es ahí donde se realiza el cálculo real. En Fetch y Decode solo se busca y decodifica la instrucción; en Write-back solo se guarda el resultado.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">11</span>
+          <div>
+            <div class="rq-texto">¿Cuándo exactamente se incrementa el PC?</div>
+            <span class="rq-respuesta">Durante la fase Fetch, en cuanto se lee la instrucción. El PC avanza antes de que la instrucción termine de ejecutarse.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">12</span>
+          <div>
+            <div class="rq-texto">Una instrucción <strong>MOV AX, 5</strong> ¿pasa por las 4 fases del ciclo?</div>
+            <span class="rq-respuesta">Sí, pasa por todas. Sin embargo, en Execute no usa la ALU para calcular — solo transfiere el valor 5 directamente a AX. Los FLAGS no se actualizan porque MOV no hace cálculos.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ════════════════════════
+       TEMA 6: FLAGS
+  ════════════════════════ -->
+  <div class="section" id="u2-flags">
+    <span class="section-label">Unidad 2 · Tema 2.2</span>
+    <h2 class="section-title">Operaciones y flags — los indicadores de la ALU</h2>
+
+    <p>
+      Después de cada operación aritmética o lógica, la ALU actualiza el registro FLAGS.
+      Estos bits son señales que indican características del resultado: si fue cero,
+      si fue negativo, si se desbordó. Saber cuándo se activa cada uno es fundamental.
+    </p>
+
+    <div class="flags-visual">
+      <div class="flag-card">
+        <span class="flag-nombre">ZF</span>
+        <span class="flag-largo">Zero Flag</span>
+        <div class="flag-cuando">Se activa cuando el resultado de la operación es exactamente <strong>cero</strong>.</div>
+      </div>
+      <div class="flag-card">
+        <span class="flag-nombre">SF</span>
+        <span class="flag-largo">Sign Flag</span>
+        <div class="flag-cuando">Se activa cuando el resultado es un número <strong>negativo</strong> (el bit de signo es 1).</div>
+      </div>
+      <div class="flag-card">
+        <span class="flag-nombre">CF</span>
+        <span class="flag-largo">Carry Flag</span>
+        <div class="flag-cuando">Se activa cuando hay <strong>acarreo</strong> en operaciones sin signo — el resultado no cabe en los bits disponibles.</div>
+      </div>
+      <div class="flag-card">
+        <span class="flag-nombre">OF</span>
+        <span class="flag-largo">Overflow Flag</span>
+        <div class="flag-cuando">Se activa cuando hay <strong>desbordamiento</strong> en operaciones con signo — el resultado es inválido para el rango de números con signo.</div>
+      </div>
+    </div>
+
+    <div class="ficha-concepto">
+      <div class="fc-header u2">
+        <div class="fc-titulo">Qué instrucciones modifican los flags — y cuáles no</div>
+        <span class="fc-unidad">Regla crítica</span>
+      </div>
+      <div class="fc-body">
+        <div>
+          <div class="fc-col-title azul">SÍ modifican FLAGS</div>
+          <ul class="fc-lista">
+            <li><span class="clave azul">ADD</span> Suma. Puede activar ZF, CF, SF, OF.</li>
+            <li><span class="clave azul">SUB</span> Resta. Igual que ADD.</li>
+            <li><span class="clave azul">MUL / DIV</span> Multiplicación y división.</li>
+            <li><span class="clave azul">AND / OR / XOR</span> Operaciones lógicas.</li>
+            <li><span class="clave azul">CMP</span> Compara restando, pero no guarda el resultado en ningún registro. Solo actualiza FLAGS.</li>
+            <li><span class="clave azul">INC / DEC</span> Incremento y decremento en 1.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="fc-col-title azul">NO modifican FLAGS</div>
+          <ul class="fc-lista">
+            <li><span class="clave azul">MOV</span> Solo copia un valor de un lugar a otro. No hay cálculo, por lo tanto la ALU no interviene y los FLAGS no cambian.</li>
+            <li><span class="clave azul">NOP</span> No hace nada. Un ciclo de reloj vacío. No toca nada.</li>
+          </ul>
+          <div class="dato-tecnico azul">Regla simple:<br>¿Hay cálculo? → FLAGS se actualizan.<br>¿Solo se mueve un dato? → FLAGS no cambian.</div>
+        </div>
+
+        <div class="truco-box">
+          <span class="truco-label">El caso especial de CMP</span>
+          <p class="truco-texto">
+            <strong>CMP AX, BX</strong> hace exactamente lo mismo que <strong>SUB AX, BX</strong> internamente —
+            calcula AX − BX y actualiza los FLAGS — pero la diferencia crucial es que el resultado
+            <strong>no se escribe en AX</strong>. AX conserva su valor original. Solo los FLAGS cambian.
+            Por eso CMP se usa para comparar sin "dañar" los registros.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="repaso-wrapper">
+      <div class="repaso-header">
+        <span class="repaso-title">Repaso rápido — Flags y operaciones</span>
+        <span class="repaso-instruccion">Pasa el cursor sobre "Ver respuesta" para revelarla</span>
+      </div>
+      <div class="repaso-lista">
+        <div class="repaso-q">
+          <span class="rq-num">13</span>
+          <div>
+            <div class="rq-texto">Se ejecuta <strong>SUB AX, AX</strong> (AX menos sí mismo). ¿Qué flag se activa?</div>
+            <span class="rq-respuesta">ZF = 1, porque cualquier número menos sí mismo es 0. Es un truco clásico en ensamblador para poner AX a cero.</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">14</span>
+          <div>
+            <div class="rq-texto">¿Cuál es la diferencia entre CF y OF?</div>
+            <span class="rq-respuesta">CF detecta desbordamiento en operaciones sin signo (números solo positivos). OF detecta desbordamiento en operaciones con signo (números positivos y negativos).</span>
+          </div>
+        </div>
+        <div class="repaso-q">
+          <span class="rq-num">15</span>
+          <div>
+            <div class="rq-texto">Se ejecuta <strong>MOV BX, 100</strong>. ¿Qué flags cambian?</div>
+            <span class="rq-respuesta">Ninguno. MOV es una transferencia directa, no un cálculo. La ALU no participa, por lo tanto los FLAGS no se tocan.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ════════════════════════
+       TEMA 7: HARDWARE FÍSICO
+  ════════════════════════ -->
+  <div class="section" id="hardware">
+    <span class="section-label">Sesiones prácticas</span>
+    <h2 class="section-title">Componentes físicos de hardware — los que ensamblaste</h2>
+
+    <div class="hw-galeria">
+      <div class="hw-item">
+        <span class="hw-sigla">CPU</span>
+        <div class="hw-nombre">Procesador</div>
+        <div class="hw-desc">El chip que contiene la ALU, la UC y los registros. Todo lo que estudiamos en la Unidad 2 vive aquí.</div>
+        <span class="hw-dato">Socket: LGA (Intel) · AM5 (AMD)</span>
+      </div>
+      <div class="hw-item">
+        <span class="hw-sigla">RAM</span>
+        <div class="hw-nombre">Memoria principal</div>
+        <div class="hw-desc">Donde vive el programa mientras se ejecuta. Es el otro extremo del ciclo Fetch: el MAR apunta aquí y el MBR trae el dato.</div>
+        <span class="hw-dato">Tipo actual: DDR5 — hasta 8400 MT/s</span>
+      </div>
+      <div class="hw-item">
+        <span class="hw-sigla">MB</span>
+        <div class="hw-nombre">Tarjeta madre</div>
+        <div class="hw-desc">Contiene el bus del sistema grabado en pistas de cobre. Todo se conecta a ella: CPU, RAM, GPU, almacenamiento.</div>
+        <span class="hw-dato">Determina la ISA compatible y el tipo de RAM</span>
+      </div>
+      <div class="hw-item">
+        <span class="hw-sigla">GPU</span>
+        <div class="hw-nombre">Tarjeta gráfica</div>
+        <div class="hw-desc">Una CPU con miles de núcleos especializados en procesamiento paralelo. Se conecta a la MB por PCIe x16 (Nivel 3 de la jerarquía).</div>
+        <span class="hw-dato">Conexión: PCIe 5.0 x16 → hasta 64 GB/s</span>
+      </div>
+      <div class="hw-item">
+        <span class="hw-sigla">SSD</span>
+        <div class="hw-nombre">Almacenamiento</div>
+        <div class="hw-desc">Guarda el sistema operativo y programas de forma permanente. La CPU nunca ejecuta desde aquí — primero carga a la RAM.</div>
+        <span class="hw-dato">NVMe PCIe: hasta 7000 MB/s. SATA: 600 MB/s</span>
+      </div>
+      <div class="hw-item">
+        <span class="hw-sigla">PSU</span>
+        <div class="hw-nombre">Fuente de poder</div>
+        <div class="hw-desc">Convierte la corriente alterna de la pared en voltajes específicos (12V, 5V, 3.3V) que cada componente necesita.</div>
+        <span class="hw-dato">Medida en Watts. Sin voltaje = sin bits.</span>
+      </div>
+      <div class="hw-item">
+        <span class="hw-sigla">H/S</span>
+        <div class="hw-nombre">Disipador de calor</div>
+        <div class="hw-desc">La CPU genera calor porque conmuta miles de millones de transistores por segundo. Sin disipador, se daña en segundos.</div>
+        <span class="hw-dato">Mayor frecuencia = más calor = mejor disipación</span>
+      </div>
+      <div class="hw-item">
+        <span class="hw-sigla">Caché</span>
+        <div class="hw-nombre">Memoria caché</div>
+        <div class="hw-desc">Memoria intermedia entre la CPU y la RAM. Guarda copia de los datos más usados para evitar ir a la RAM en cada ciclo.</div>
+        <span class="hw-dato">L1 (más rápida) → L2 → L3 (más grande)</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- ════════════════════════
+       REGLAS DE ORO
+  ════════════════════════ -->
+  <div class="section" id="reglas">
+    <span class="section-label">Para el sábado</span>
+    <h2 class="section-title">Las 10 reglas de oro — lo que no puedes olvidar</h2>
+
+    <div class="reglas-oro">
+      <div class="regla-item"><div class="regla-n">1</div><div class="regla-texto"><strong>MOV nunca toca los FLAGS.</strong> Solo las instrucciones con cálculo (ADD, SUB, AND, CMP…) los modifican.</div></div>
+      <div class="regla-item"><div class="regla-n">2</div><div class="regla-texto"><strong>CMP hace lo mismo que SUB pero no escribe en el registro destino.</strong> Solo actualiza FLAGS. Por eso AX no cambia después de un CMP.</div></div>
+      <div class="regla-item"><div class="regla-n">3</div><div class="regla-texto"><strong>El PC siempre apunta a la SIGUIENTE instrucción, no a la que se está ejecutando.</strong> La instrucción actual la tiene el IR.</div></div>
+      <div class="regla-item"><div class="regla-n">4</div><div class="regla-texto"><strong>MAR guarda direcciones. MBR guarda datos.</strong> La A es de Address, la B es de Buffer.</div></div>
+      <div class="regla-item"><div class="regla-n">5</div><div class="regla-texto"><strong>El orden del ciclo no cambia nunca:</strong> Fetch → Decode → Execute → Write-back. Siempre.</div></div>
+      <div class="regla-item"><div class="regla-n">6</div><div class="regla-texto"><strong>ZF = 1 cuando el resultado es cero.</strong> SF = 1 cuando el resultado es negativo. CF para sin signo, OF para con signo.</div></div>
+      <div class="regla-item"><div class="regla-n">7</div><div class="regla-texto"><strong>Arquitectura (ISA) = el contrato (qué instrucciones existen).</strong> Organización = la implementación (cómo las ejecuta el hardware).</div></div>
+      <div class="regla-item"><div class="regla-n">8</div><div class="regla-texto"><strong>Von Neumann tiene un solo bus compartido</strong> para datos e instrucciones. Harvard tiene buses separados — por eso es más rápido en ciertas aplicaciones.</div></div>
+      <div class="regla-item"><div class="regla-n">9</div><div class="regla-texto"><strong>A mayor proximidad a la CPU, mayor velocidad y mayor costo por byte.</strong> Registros → Caché L1 → L2 → L3 → RAM → Disco.</div></div>
+      <div class="regla-item"><div class="regla-n">10</div><div class="regla-texto"><strong>1 GHz = 1,000,000,000 ciclos por segundo.</strong> Un procesador de 3 GHz puede iniciar hasta 3,000 millones de ciclos Fetch en un segundo.</div></div>
+    </div>
+  </div>
+
+  <hr class="section-rule">
+
+  <!-- BARRA DE PROGRESO DE ESTUDIO -->
+  <div class="section">
+    <div class="progreso-estudio" id="progreso-estudio">
+      <div class="pe-title">Mi progreso de estudio — marca cada tema al dominarlo</div>
+      <div id="pe-items">
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Domino las 5 generaciones de computadoras y sus tecnologías clave.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Sé explicar la diferencia entre Von Neumann y Harvard con un ejemplo.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Puedo distinguir Arquitectura (ISA) de Organización y dar un ejemplo de cada una.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Identifico los tres sub-buses del sistema y la función de cada uno.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Conozco los 4 niveles de la jerarquía de interconexiones en orden de velocidad.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Describo ALU, Unidad de Control y Registros y la función específica de cada uno.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Sé para qué sirve cada registro: PC, IR, MAR, MBR, AX–DX y FLAGS.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Puedo trazar el ciclo Fetch→Decode→Execute→Write-back con una instrucción ADD.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Sé cuándo se activa cada flag (ZF, SF, CF, OF) y por qué MOV no los toca.</span></div>
+        <div class="pe-item"><div class="pe-check-box" onclick="toggleCheck(this)"></div><span class="pe-texto">Identifico los componentes físicos (CPU, RAM, GPU, SSD, PSU) y su conexión con la teoría.</span></div>
+      </div>
+      <div class="pe-bar-track"><div class="pe-bar-fill" id="pe-bar"></div></div>
+      <div class="pe-progreso-label" id="pe-label">0 de 10 temas dominados</div>
+    </div>
+  </div>
+
+  <!-- Botón imprimir -->
+  <div style="text-align:center; padding:1.5rem 0 .5rem;" class="no-print">
+    <button onclick="window.print()" style="font-family:var(--font-ui);font-size:.9rem;font-weight:600;padding:.75rem 2.5rem;background:var(--guinda);color:white;border:none;border-radius:var(--radius-md);cursor:pointer;">
+      Imprimir / Guardar como PDF
+    </button>
+  </div>
+
+</div><!-- /page-wrapper -->
+
+<footer class="site-footer">
+  <div>
+    <strong>IEDEP</strong> &nbsp;·&nbsp; Instituto de Educación Digital del Estado de Puebla &nbsp;·&nbsp;
+    Arquitectura de Computadoras &nbsp;·&nbsp; Guía de Estudio — Evaluación 18 de julio de 2026
+  </div>
+  <div>Unidades 1 y 2 &nbsp;·&nbsp; Lic. en Sistemas Computacionales &nbsp;·&nbsp; 2do Cuatrimestre</div>
+</footer>
+
+<script>
+/* Cuenta regresiva */
+(function () {
+  var TARGET = new Date('2026-07-18T08:00:00');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function tick() {
+    var ahora = new Date();
+    var diff  = TARGET - ahora;
+
+    if (diff <= 0) {
+      document.getElementById('countdown-strip').innerHTML =
+        '<span style="font-family:var(--font-mono);font-size:.85rem;font-weight:700;color:#f0c8d0;">Es hoy. Mucho animo en la evaluacion.</span>';
+      return;
+    }
+
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById('cd-d').textContent = d;
+    document.getElementById('cd-h').textContent = pad(h);
+    document.getElementById('cd-m').textContent = pad(m);
+    document.getElementById('cd-s').textContent = pad(s);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* Progreso de estudio */
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  actualizarProgreso();
+}
+
+function actualizarProgreso() {
+  var total    = document.querySelectorAll('.pe-check-box').length;
+  var marcados = document.querySelectorAll('.pe-check-box.checked').length;
+  var pct      = Math.round(marcados / total * 100);
+
+  document.getElementById('pe-bar').style.width   = pct + '%';
+  document.getElementById('pe-label').textContent = marcados + ' de ' + total + ' temas dominados (' + pct + '%)';
+}
+
+/* Navegación suave en el índice */
+document.querySelectorAll('a.mapa-item').forEach(function (a) {
+  a.addEventListener('click', function (e) {
+    var href = this.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+      var target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>
