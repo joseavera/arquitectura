@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación — Arquitectura de Computadoras | IEDEP</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="plantillas/base.css">
+<style>
+
+/* ══════════════════════════════════════════════
+   TOKENS PROPIOS DE LA EVALUACIÓN
+   Paleta: negro técnico + guinda IEDEP + verde
+   de validación + rojo de error
+══════════════════════════════════════════════ */
+:root {
+  --eval-bg:       #0c0a0b;
+  --eval-surface:  #161214;
+  --eval-border:   #2a2028;
+  --eval-border2:  #3e3840;
+  --eval-text:     #e8e0e4;
+  --eval-muted:    #7a6e72;
+  --eval-guinda:   #5e162e;
+  --eval-guinda-h: #7a1f3d;
+  --eval-pink:     #f0c8d4;
+  --eval-green:    #22c55e;
+  --eval-red:      #ef4444;
+  --eval-amber:    #f59e0b;
+  --eval-blue:     #3b82f6;
+  --eval-mono:     'IBM Plex Mono', monospace;
+  --eval-sans:     'IBM Plex Sans', sans-serif;
+  --eval-serif:    'IBM Plex Serif', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--eval-bg);
+  color: var(--eval-text);
+  font-family: var(--eval-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Inputs siempre seleccionables */
+input, textarea { -webkit-user-select: text; user-select: text; }
+
+/* ══════════════════════════════════════════════
+   PANTALLA DE BIENVENIDA
+══════════════════════════════════════════════ */
+#screen-welcome {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.welcome-shell {
+  width: 100%;
+  max-width: 640px;
+  border: 1px solid var(--eval-border2);
+  background: var(--eval-surface);
+}
+
+.welcome-topbar {
+  background: var(--eval-guinda);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.welcome-topbar img { height: 36px; opacity: .9; }
+.welcome-topbar-title {
+  font-family: var(--eval-mono);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.7);
+}
+
+.welcome-body { padding: 2rem 1.75rem; }
+
+.welcome-badge {
+  font-family: var(--eval-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--eval-pink);
+  border: 1px solid rgba(240,200,212,.3);
+  padding: .22rem .65rem;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.welcome-title {
+  font-family: var(--eval-serif);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 600;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: .75rem;
+}
+
+.welcome-sub {
+  font-size: .9rem;
+  color: var(--eval-muted);
+  line-height: 1.65;
+  margin-bottom: 1.5rem;
+}
+
+.welcome-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+  margin-bottom: 1.75rem;
+}
+@media (max-width:500px) { .welcome-grid { grid-template-columns: 1fr; } }
+
+.welcome-dato {
+  background: var(--eval-bg);
+  border: 1px solid var(--eval-border2);
+  padding: .75rem 1rem;
+}
+.welcome-dato .wd-label {
+  font-family: var(--eval-mono);
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--eval-muted);
+  display: block;
+  margin-bottom: .2rem;
+}
+.welcome-dato .wd-valor {
+  font-family: var(--eval-mono);
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--eval-pink);
+}
+
+/* Campos de datos del alumno */
+.student-fields { margin-bottom: 1.5rem; }
+.sf-label {
+  font-family: var(--eval-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--eval-muted);
+  display: block;
+  margin-bottom: .3rem;
+  margin-top: .85rem;
+}
+.sf-input {
+  width: 100%;
+  background: var(--eval-bg);
+  border: 1px solid var(--eval-border2);
+  border-bottom: 2px solid var(--eval-border2);
+  color: white;
+  font-family: var(--eval-sans);
+  font-size: .95rem;
+  padding: .65rem .9rem;
+  outline: none;
+  transition: border-color .15s;
+  -webkit-user-select: text; user-select: text;
+}
+.sf-input:focus { border-color: var(--eval-guinda); border-bottom-color: var(--eval-pink); }
+
+.rules-list {
+  border: 1px solid var(--eval-border2);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.5rem;
+  background: rgba(94,22,46,.12);
+}
+.rules-list .rl-title {
+  font-family: var(--eval-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--eval-pink);
+  margin-bottom: .65rem;
+}
+.rules-list li {
+  font-size: .83rem;
+  color: var(--eval-muted);
+  margin-bottom: .35rem;
+  padding-left: .85rem;
+  position: relative;
+  list-style: none;
+  line-height: 1.5;
+}
+.rules-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--eval-guinda-h);
+  font-family: var(--eval-mono);
+}
+
+.btn-start {
+  width: 100%;
+  background: var(--eval-guinda);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-family: var(--eval-mono);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+}
+.btn-start:hover { background: var(--eval-guinda-h); }
+.btn-start:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════
+   PANTALLA DE EVALUACIÓN
+══════════════════════════════════════════════ */
+#screen-exam { display: none; min-height: 100vh; }
+
+/* Barra superior fija */
+.exam-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--eval-surface);
+  border-bottom: 1px solid var(--eval-border2);
+  padding: .65rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.exam-title-bar {
+  font-family: var(--eval-mono);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--eval-pink);
+}
+.exam-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex: 1;
+  max-width: 420px;
+}
+.exam-progress-track {
+  flex: 1;
+  height: 4px;
+  background: var(--eval-border2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.exam-progress-fill {
+  height: 100%;
+  background: var(--eval-guinda);
+  border-radius: 2px;
+  transition: width .35s ease;
+  width: 0%;
+}
+.exam-prog-label {
+  font-family: var(--eval-mono);
+  font-size: .65rem;
+  color: var(--eval-muted);
+  white-space: nowrap;
+}
+.infraction-badge {
+  font-family: var(--eval-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  color: var(--eval-amber);
+  background: rgba(245,158,11,.1);
+  border: 1px solid rgba(245,158,11,.25);
+  padding: .2rem .55rem;
+  letter-spacing: .04em;
+}
+
+/* Grid de preguntas */
+.exam-body {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.question-block {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--eval-border);
+  position: relative;
+}
+.question-block:last-child { border-bottom: none; }
+
+/* Número de pregunta estilo certificación */
+.q-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.q-num-badge {
+  font-family: var(--eval-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--eval-muted);
+  background: var(--eval-border);
+  padding: .25rem .65rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: .15rem;
+}
+.q-dominio {
+  font-family: var(--eval-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--eval-guinda-h);
+  background: rgba(94,22,46,.2);
+  padding: .2rem .55rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: .15rem;
+}
+.q-text {
+  font-family: var(--eval-serif);
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: white;
+  line-height: 1.6;
+  margin-bottom: 1.1rem;
+}
+.q-text strong { color: var(--eval-pink); font-weight: 600; }
+.q-text code {
+  font-family: var(--eval-mono);
+  font-size: .9rem;
+  background: var(--eval-border);
+  padding: .1rem .4rem;
+  color: var(--eval-pink);
+}
+
+/* Opciones */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .85rem;
+  padding: .85rem 1rem;
+  border: 1.5px solid var(--eval-border2);
+  background: var(--eval-surface);
+  cursor: pointer;
+  transition: all .15s;
+  position: relative;
+}
+.option-item:hover:not(.locked) {
+  border-color: var(--eval-guinda-h);
+  background: rgba(94,22,46,.12);
+}
+.option-item.locked { cursor: not-allowed; }
+.option-item.selected-correct {
+  border-color: var(--eval-green);
+  background: rgba(34,197,94,.08);
+}
+.option-item.selected-wrong {
+  border-color: var(--eval-red);
+  background: rgba(239,68,68,.08);
+}
+.option-item.reveal-correct {
+  border-color: rgba(34,197,94,.4);
+  background: rgba(34,197,94,.04);
+}
+
+.opt-letter {
+  font-family: var(--eval-mono);
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--eval-muted);
+  min-width: 24px;
+  height: 24px;
+  border: 1.5px solid var(--eval-border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .15s;
+  margin-top: .05rem;
+}
+.option-item:hover:not(.locked) .opt-letter {
+  border-color: var(--eval-guinda-h);
+  color: var(--eval-pink);
+}
+.option-item.selected-correct .opt-letter {
+  border-color: var(--eval-green);
+  background: var(--eval-green);
+  color: #000;
+}
+.option-item.selected-wrong .opt-letter {
+  border-color: var(--eval-red);
+  background: var(--eval-red);
+  color: white;
+}
+.option-item.reveal-correct .opt-letter {
+  border-color: rgba(34,197,94,.6);
+  color: var(--eval-green);
+}
+
+.opt-text {
+  font-size: .9rem;
+  color: var(--eval-text);
+  line-height: 1.55;
+}
+.option-item.selected-correct .opt-text { color: #86efac; }
+.option-item.selected-wrong   .opt-text { color: #fca5a5; }
+.option-item.reveal-correct   .opt-text { color: rgba(134,239,172,.65); }
+
+/* Feedback debajo de las opciones */
+.q-feedback {
+  margin-top: .75rem;
+  padding: .75rem 1rem;
+  border-left: 3px solid;
+  font-size: .83rem;
+  line-height: 1.55;
+  display: none;
+}
+.q-feedback.show { display: block; }
+.q-feedback.correct { border-color: var(--eval-green); background: rgba(34,197,94,.07); color: #86efac; }
+.q-feedback.wrong   { border-color: var(--eval-red);   background: rgba(239,68,68,.07);  color: #fca5a5; }
+.q-feedback .fb-label {
+  font-family: var(--eval-mono);
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: .3rem;
+  opacity: .75;
+}
+
+/* ══════════════════════════════════════════════
+   BOTÓN FINALIZAR
+══════════════════════════════════════════════ */
+.submit-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--eval-surface);
+  border-top: 1px solid var(--eval-border2);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.submit-status {
+  font-family: var(--eval-mono);
+  font-size: .72rem;
+  color: var(--eval-muted);
+}
+.submit-status strong { color: var(--eval-pink); }
+.btn-submit {
+  font-family: var(--eval-mono);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .75rem 2rem;
+  background: var(--eval-guinda);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-submit:hover:not(:disabled) { background: var(--eval-guinda-h); }
+.btn-submit:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════
+   PANTALLA DE RESULTADOS
+══════════════════════════════════════════════ */
+#screen-results { display: none; min-height: 100vh; padding: 2.5rem 1.5rem; }
+
+.results-shell {
+  max-width: 740px;
+  margin: 0 auto;
+}
+
+.results-header {
+  background: var(--eval-guinda);
+  padding: 2rem 2rem 2.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.results-header::before {
+  content: '';
+  position: absolute;
+  right: -40px; top: -40px;
+  width: 200px; height: 200px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.results-eyebrow {
+  font-family: var(--eval-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  margin-bottom: .5rem;
+}
+.results-nombre {
+  font-family: var(--eval-serif);
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-weight: 600;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: .3rem;
+}
+.results-curso {
+  font-size: .85rem;
+  color: rgba(255,255,255,.55);
+}
+.results-score-big {
+  font-family: var(--eval-mono);
+  font-size: 5rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+  margin: 1.5rem 0 .3rem;
+}
+.results-score-label {
+  font-family: var(--eval-mono);
+  font-size: .7rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.45);
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--eval-border);
+  border: 1px solid var(--eval-border);
+  margin-bottom: 1.5rem;
+}
+@media (max-width:500px) { .results-grid { grid-template-columns: 1fr; } }
+.rg-cell {
+  background: var(--eval-surface);
+  padding: 1.1rem 1.2rem;
+  text-align: center;
+}
+.rg-cell .rg-val {
+  font-family: var(--eval-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: .2rem;
+}
+.rg-cell .rg-val.green  { color: var(--eval-green); }
+.rg-cell .rg-val.red    { color: var(--eval-red); }
+.rg-cell .rg-val.amber  { color: var(--eval-amber); }
+.rg-cell .rg-label {
+  font-family: var(--eval-mono);
+  font-size: .6rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--eval-muted);
+}
+
+.feedback-panel {
+  border: 1px solid var(--eval-border2);
+  border-left: 4px solid;
+  padding: 1.25rem 1.4rem;
+  margin-bottom: 1.5rem;
+  background: var(--eval-surface);
+}
+.feedback-panel .fp-label {
+  font-family: var(--eval-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+  display: block;
+}
+.feedback-panel .fp-text {
+  font-size: .9rem;
+  line-height: 1.65;
+}
+.feedback-panel.excelente { border-left-color: var(--eval-green);  }
+.feedback-panel.excelente .fp-label { color: var(--eval-green); }
+.feedback-panel.excelente .fp-text  { color: #86efac; }
+.feedback-panel.bueno     { border-left-color: var(--eval-blue);   }
+.feedback-panel.bueno .fp-label     { color: var(--eval-blue); }
+.feedback-panel.bueno .fp-text      { color: #93c5fd; }
+.feedback-panel.regular   { border-left-color: var(--eval-amber);  }
+.feedback-panel.regular .fp-label   { color: var(--eval-amber); }
+.feedback-panel.regular .fp-text    { color: #fde68a; }
+.feedback-panel.insuficiente { border-left-color: var(--eval-red); }
+.feedback-panel.insuficiente .fp-label { color: var(--eval-red); }
+.feedback-panel.insuficiente .fp-text  { color: #fca5a5; }
+
+.infractions-panel {
+  border: 1px solid rgba(245,158,11,.25);
+  background: rgba(245,158,11,.05);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.infractions-panel .ip-label {
+  font-family: var(--eval-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--eval-amber);
+  margin-bottom: .4rem;
+  display: block;
+}
+.infractions-panel .ip-count {
+  font-family: var(--eval-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--eval-amber);
+  display: block;
+  margin-bottom: .3rem;
+}
+.infractions-panel .ip-detail {
+  font-size: .82rem;
+  color: rgba(245,158,11,.65);
+  line-height: 1.55;
+}
+
+.results-footer-meta {
+  border: 1px solid var(--eval-border);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+  background: var(--eval-surface);
+}
+.rfm-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .3rem 0;
+  border-bottom: 1px solid var(--eval-border);
+  font-size: .83rem;
+}
+.rfm-row:last-child { border-bottom: none; }
+.rfm-key {
+  font-family: var(--eval-mono);
+  font-size: .68rem;
+  color: var(--eval-muted);
+  letter-spacing: .06em;
+}
+.rfm-val {
+  font-family: var(--eval-mono);
+  font-size: .82rem;
+  color: var(--eval-text);
+  font-weight: 600;
+}
+
+.btn-print-result {
+  width: 100%;
+  background: var(--eval-guinda);
+  color: white;
+  border: none;
+  padding: .9rem 1.5rem;
+  font-family: var(--eval-mono);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s;
+  margin-bottom: .5rem;
+}
+.btn-print-result:hover { background: var(--eval-guinda-h); }
+
+/* ══════════════════════════════════════════════
+   MODAL DE ADVERTENCIA DE INFRACCIÓN
+══════════════════════════════════════════════ */
+#infraction-toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  background: var(--eval-amber);
+  color: #000;
+  font-family: var(--eval-mono);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: .65rem 1rem;
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+  max-width: 300px;
+  border-left: 4px solid #b45309;
+}
+#infraction-toast.show { opacity: 1; }
+
+/* ══════════════════════════════════════════════
+   PANTALLA "YA REALIZADO"
+══════════════════════════════════════════════ */
+#screen-blocked {
+  display: none;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.blocked-shell {
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid var(--eval-border2);
+  background: var(--eval-surface);
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+.blocked-icon {
+  font-family: var(--eval-mono);
+  font-size: 2.5rem;
+  color: var(--eval-guinda-h);
+  margin-bottom: 1rem;
+}
+.blocked-title {
+  font-family: var(--eval-serif);
+  font-size: 1.5rem;
+  color: white;
+  margin-bottom: .75rem;
+}
+.blocked-text {
+  font-size: .88rem;
+  color: var(--eval-muted);
+  line-height: 1.65;
+}
+
+/* ══════════════════════════════════════════════
+   PRINT
+══════════════════════════════════════════════ */
+@media print {
+  body { background: white !important; color: black !important; -webkit-user-select: text !important; user-select: text !important; }
+  #screen-exam, #screen-welcome, #screen-blocked { display: none !important; }
+  #screen-results { display: block !important; padding: 0 !important; }
+  .results-shell { max-width: 100% !important; }
+  .results-header { background: #5e162e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .btn-print-result { display: none !important; }
+  .exam-topbar, .submit-bar, #infraction-toast { display: none !important; }
+  .results-grid { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST DE INFRACCIÓN -->
+<div id="infraction-toast"></div>
+
+<!-- ══════════════════════════════════════════════
+     PANTALLA BLOQUEADA (ya realizó el examen)
+══════════════════════════════════════════════ -->
+<div id="screen-blocked">
+  <div class="blocked-shell">
+    <div class="blocked-icon">[ X ]</div>
+    <div class="blocked-title">Evaluación ya realizada</div>
+    <p class="blocked-text">
+      Este dispositivo ya registró una evaluación completada. Solo se permite un intento
+      por equipo. Si consideras que existe un error, comunícate con tu asesor.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PANTALLA DE BIENVENIDA
+══════════════════════════════════════════════ -->
+<div id="screen-welcome">
+  <div class="welcome-shell">
+    <div class="welcome-topbar">
+      <img src="plantillas/imagen1.png" alt="IEDEP">
+      <span class="welcome-topbar-title">Instituto de Educación Digital del Estado de Puebla</span>
+    </div>
+    <div class="welcome-body">
+      <span class="welcome-badge">Evaluación formal &nbsp;·&nbsp; Unidades 1 y 2</span>
+      <h1 class="welcome-title">Arquitectura de<br>Computadoras</h1>
+      <p class="welcome-sub">
+        Evaluación individual. Lee cada pregunta con atención antes de seleccionar tu respuesta.
+        Esta evaluación debe realizarse de manera personal y sin material de consulta.
+      </p>
+
+      <div class="welcome-grid">
+        <div class="welcome-dato">
+          <span class="wd-label">Preguntas</span>
+          <span class="wd-valor">20</span>
+        </div>
+        <div class="welcome-dato">
+          <span class="wd-label">Valor por pregunta</span>
+          <span class="wd-valor">5 puntos</span>
+        </div>
+        <div class="welcome-dato">
+          <span class="wd-label">Puntaje máximo</span>
+          <span class="wd-valor">100 puntos</span>
+        </div>
+        <div class="welcome-dato">
+          <span class="wd-label">Fecha</span>
+          <span class="wd-valor">Sábado 18 jul 2026</span>
+        </div>
+      </div>
+
+      <div class="student-fields">
+        <label class="sf-label" for="st-nombre">Nombre completo</label>
+        <input class="sf-input" type="text" id="st-nombre" placeholder="Apellido paterno, apellido materno, nombre(s)" autocomplete="off" spellcheck="false">
+        <label class="sf-label" for="st-matricula">Matrícula</label>
+        <input class="sf-input" type="text" id="st-matricula" placeholder="Número de matrícula" autocomplete="off">
+        <label class="sf-label" for="st-grupo">Grupo</label>
+        <input class="sf-input" type="text" id="st-grupo" placeholder="Ej. LSC-2A" autocomplete="off">
+      </div>
+
+      <ul class="rules-list">
+        <div class="rl-title">Indicaciones generales</div>
+        <li>Ingresa tu nombre completo y matrícula antes de comenzar.</li>
+        <li>Cada pregunta tiene una sola respuesta correcta. Una vez seleccionada, no puede modificarse.</li>
+        <li>Responde todas las preguntas antes de enviar la evaluación.</li>
+        <li>Al finalizar se mostrará tu resultado con retroalimentación por pregunta.</li>
+        <li>Guarda o imprime tu pantalla de resultados como evidencia de participación.</li>
+      </ul>
+
+      <button class="btn-start" id="btn-start" onclick="iniciarEvaluacion()">
+        Comenzar evaluación &nbsp; ›
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PANTALLA DE EVALUACIÓN
+══════════════════════════════════════════════ -->
+<div id="screen-exam">
+  <div class="exam-topbar">
+    <span class="exam-title-bar">Arquitectura de Computadoras — Evaluación</span>
+    <div class="exam-progress-wrap">
+      <div class="exam-progress-track">
+        <div class="exam-progress-fill" id="exam-progress-fill"></div>
+      </div>
+      <span class="exam-prog-label" id="exam-prog-label">0 / 20</span>
+    </div>
+    <span class="infraction-badge" id="infraction-badge" style="display:none;"></span>
+  </div>
+
+  <div class="exam-body" id="exam-body">
+    <!-- preguntas generadas por JS -->
+  </div>
+
+  <div class="submit-bar">
+    <span class="submit-status" id="submit-status">Preguntas contestadas: <strong id="answered-count">0</strong> de 20</span>
+    <button class="btn-submit" id="btn-submit" onclick="finalizarEvaluacion()" disabled>Finalizar evaluación</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PANTALLA DE RESULTADOS
+══════════════════════════════════════════════ -->
+<div id="screen-results">
+  <div class="results-shell">
+    <div class="results-header">
+      <div class="results-eyebrow">Resultado de evaluación — Sábado 18 de julio de 2026</div>
+      <div class="results-nombre" id="res-nombre">—</div>
+      <div class="results-curso">Arquitectura de Computadoras &nbsp;·&nbsp; Unidades 1 y 2 &nbsp;·&nbsp; IEDEP</div>
+      <div class="results-score-big" id="res-score">—</div>
+      <div class="results-score-label">puntos obtenidos de 100</div>
+    </div>
+
+    <div class="results-grid">
+      <div class="rg-cell">
+        <span class="rg-val green" id="res-correctas">—</span>
+        <span class="rg-label">Respuestas correctas</span>
+      </div>
+      <div class="rg-cell">
+        <span class="rg-val red" id="res-incorrectas">—</span>
+        <span class="rg-label">Respuestas incorrectas</span>
+      </div>
+      <div class="rg-cell">
+        <span class="rg-val amber" id="res-infracciones">—</span>
+        <span class="rg-label">Infracciones detectadas</span>
+      </div>
+    </div>
+
+    <div class="feedback-panel" id="feedback-panel">
+      <span class="fp-label">Retroalimentación</span>
+      <p class="fp-text" id="fp-text"></p>
+    </div>
+
+    <div class="infractions-panel" id="infractions-panel">
+      <span class="ip-label">Registro de comportamiento</span>
+      <span class="ip-count" id="ip-count">0 eventos registrados</span>
+      <p class="ip-detail" id="ip-detail"></p>
+    </div>
+
+    <div class="results-footer-meta">
+      <div class="rfm-row"><span class="rfm-key">Alumno</span><span class="rfm-val" id="meta-nombre">—</span></div>
+      <div class="rfm-row"><span class="rfm-key">Matrícula</span><span class="rfm-val" id="meta-matricula">—</span></div>
+      <div class="rfm-row"><span class="rfm-key">Grupo</span><span class="rfm-val" id="meta-grupo">—</span></div>
+      <div class="rfm-row"><span class="rfm-key">Fecha y hora</span><span class="rfm-val" id="meta-fecha">—</span></div>
+      <div class="rfm-row"><span class="rfm-key">Calificación</span><span class="rfm-val" id="meta-calificacion">—</span></div>
+    </div>
+
+    <button class="btn-print-result" onclick="window.print()">Guardar como PDF / Imprimir como evidencia</button>
+  </div>
+</div>
+
+<script>
+/* ─── Banco de preguntas ────────────────────── */
+var BANCO = [
+  /* ── Unidad 1: Generaciones ── */
+  {
+    id: 1,
+    dominio: 'Unidad 1 — Generaciones',
+    texto: '¿Cuál de los siguientes dispositivos electrónicos es la tecnología característica de la <strong>primera generación</strong> de computadoras?',
+    opciones: [
+      { letra: 'A', texto: 'Circuitos integrados', correcto: false },
+      { letra: 'B', texto: 'Transistores', correcto: false },
+      { letra: 'C', texto: 'Válvulas de vacío', correcto: true },
+      { letra: 'D', texto: 'Microprocesadores de silicio', correcto: false },
+    ],
+    feedback_ok:  'Correcto. La primera generación (1940s–50s) usó válvulas de vacío. Eran enormes, consumían mucha energía y fallaban con frecuencia. El ENIAC (1945) es el ejemplo más representativo.',
+    feedback_err: 'Incorrecto. La primera generación usó válvulas de vacío. Los transistores llegaron en la segunda generación, los circuitos integrados en la tercera y los microprocesadores en la cuarta.',
+  },
+  {
+    id: 2,
+    dominio: 'Unidad 1 — Generaciones',
+    texto: '¿A qué generación de computadoras pertenece el concepto del <strong>microprocesador</strong> — toda la CPU en un solo chip integrado?',
+    opciones: [
+      { letra: 'A', texto: 'Segunda generación', correcto: false },
+      { letra: 'B', texto: 'Tercera generación', correcto: false },
+      { letra: 'C', texto: 'Cuarta generación', correcto: true },
+      { letra: 'D', texto: 'Quinta generación', correcto: false },
+    ],
+    feedback_ok:  'Correcto. La cuarta generación (desde 1971 con el Intel 4004) introdujo el microprocesador. Por primera vez, toda la Unidad Central de Procesamiento cabía en un solo chip de silicio.',
+    feedback_err: 'Incorrecto. El microprocesador define la cuarta generación (desde 1971). La tercera usó circuitos integrados (varios transistores en un chip, pero no la CPU completa).',
+  },
+  /* ── Unidad 1: Von Neumann vs Harvard ── */
+  {
+    id: 3,
+    dominio: 'Unidad 1 — Modelos de arquitectura',
+    texto: '¿Cuál es el "cuello de botella" que caracteriza a la arquitectura <strong>Von Neumann</strong>?',
+    opciones: [
+      { letra: 'A', texto: 'La ALU solo puede realizar una operación por ciclo de reloj', correcto: false },
+      { letra: 'B', texto: 'Datos e instrucciones comparten el mismo bus y la misma memoria', correcto: true },
+      { letra: 'C', texto: 'Los registros internos son demasiado lentos para la velocidad del procesador', correcto: false },
+      { letra: 'D', texto: 'El bus de control no puede enviar señales READ y WRITE simultáneamente', correcto: false },
+    ],
+    feedback_ok:  'Correcto. En Von Neumann, datos e instrucciones comparten un único bus y una única memoria. Esto impide transferir datos e instrucciones al mismo tiempo, creando un cuello de botella que limita la velocidad total del sistema.',
+    feedback_err: 'Incorrecto. El cuello de botella de Von Neumann proviene de compartir un solo bus y una sola memoria para datos e instrucciones, impidiendo acceder a ambos simultáneamente.',
+  },
+  {
+    id: 4,
+    dominio: 'Unidad 1 — Modelos de arquitectura',
+    texto: 'Un ingeniero diseña un microcontrolador para procesamiento de señales de audio. Decide usar memorias y buses separados para instrucciones y datos. ¿Qué modelo arquitectónico está implementando?',
+    opciones: [
+      { letra: 'A', texto: 'Modelo Von Neumann', correcto: false },
+      { letra: 'B', texto: 'Modelo Harvard', correcto: true },
+      { letra: 'C', texto: 'Arquitectura CISC', correcto: false },
+      { letra: 'D', texto: 'Pipeline multietapa', correcto: false },
+    ],
+    feedback_ok:  'Correcto. La arquitectura Harvard usa memorias y buses separados para instrucciones y datos, lo que permite leer una instrucción y acceder a un dato al mismo tiempo. Es la elección habitual en microcontroladores y DSP.',
+    feedback_err: 'Incorrecto. Memorias y buses separados para instrucciones y datos definen el modelo Harvard, no Von Neumann. Von Neumann unifica ambos en un solo espacio de memoria y un solo bus.',
+  },
+  /* ── Unidad 1: ISA vs. Organización ── */
+  {
+    id: 5,
+    dominio: 'Unidad 1 — Arquitectura vs. Organización',
+    texto: 'Un programador escribe código en ensamblador x86-64 que funciona tanto en un procesador Intel Core i9 como en un AMD Ryzen 9. ¿Qué concepto explica esta compatibilidad?',
+    opciones: [
+      { letra: 'A', texto: 'Ambos procesadores tienen la misma organización interna', correcto: false },
+      { letra: 'B', texto: 'Ambos procesadores implementan la misma ISA (arquitectura x86-64)', correcto: true },
+      { letra: 'C', texto: 'Ambos procesadores comparten la misma frecuencia de reloj', correcto: false },
+      { letra: 'D', texto: 'El sistema operativo traduce las instrucciones en tiempo real', correcto: false },
+    ],
+    feedback_ok:  'Correcto. La ISA (Instruction Set Architecture) define el conjunto de instrucciones visible al programador. Si dos procesadores implementan la misma ISA, el mismo código de ensamblador funciona en ambos, aunque su organización interna sea completamente diferente.',
+    feedback_err: 'Incorrecto. La compatibilidad de software entre procesadores de distintos fabricantes se explica por la ISA compartida (x86-64). Su organización interna — pipelines, frecuencia, caché — puede ser muy diferente.',
+  },
+  /* ── Unidad 1: Bus del sistema ── */
+  {
+    id: 6,
+    dominio: 'Unidad 1 — Bus del sistema',
+    texto: 'El CPU necesita leer el dato almacenado en la dirección de memoria 0x00FF. ¿Qué bus es el responsable de transmitir esa dirección hacia la memoria?',
+    opciones: [
+      { letra: 'A', texto: 'Bus de datos', correcto: false },
+      { letra: 'B', texto: 'Bus de control', correcto: false },
+      { letra: 'C', texto: 'Bus de direcciones', correcto: true },
+      { letra: 'D', texto: 'Bus PCIe', correcto: false },
+    ],
+    feedback_ok:  'Correcto. El bus de direcciones es unidireccional (CPU → memoria) y transporta la ubicación en memoria a la que se quiere acceder. El bus de datos traerá el dato de regreso, y el bus de control señalará si es una operación READ.',
+    feedback_err: 'Incorrecto. La dirección (0x00FF) viaja por el bus de direcciones. El bus de datos transporta el dato después de que se localiza, y el bus de control envía las señales de lectura o escritura.',
+  },
+  /* ── Unidad 1: Jerarquía ── */
+  {
+    id: 7,
+    dominio: 'Unidad 1 — Jerarquía de interconexiones',
+    texto: 'Una tarjeta gráfica (GPU) se comunica con el procesador a través de una ranura en la tarjeta madre. ¿En qué nivel de la jerarquía de interconexiones se ubica esa conexión?',
+    opciones: [
+      { letra: 'A', texto: 'Nivel 1 — Bus de memoria caché', correcto: false },
+      { letra: 'B', texto: 'Nivel 2 — Bus de memoria DDR', correcto: false },
+      { letra: 'C', texto: 'Nivel 3 — Bus de expansión PCIe', correcto: true },
+      { letra: 'D', texto: 'Nivel 4 — Bus de E/S (USB, SATA)', correcto: false },
+    ],
+    feedback_ok:  'Correcto. El nivel 3 de la jerarquía corresponde a PCIe (PCI Express), que conecta la GPU y los SSD NVMe con el chipset de la tarjeta madre. PCIe 5.0 x16 ofrece hasta 64 GB/s de ancho de banda.',
+    feedback_err: 'Incorrecto. La GPU se conecta en el nivel 3 a través de PCIe. El nivel 1 es la caché interna de la CPU, el nivel 2 es el bus de memoria RAM, y el nivel 4 incluye USB, SATA y otros buses de baja velocidad.',
+  },
+  /* ── Unidad 2: Estructura CPU ── */
+  {
+    id: 8,
+    dominio: 'Unidad 2 — Estructura interna',
+    texto: '¿Cuál es la función de la <strong>Unidad de Control</strong> dentro del procesador?',
+    opciones: [
+      { letra: 'A', texto: 'Realizar operaciones aritméticas como sumas y restas', correcto: false },
+      { letra: 'B', texto: 'Almacenar temporalmente los operandos durante el ciclo de instrucción', correcto: false },
+      { letra: 'C', texto: 'Generar las señales de control que coordinan a la ALU, los registros y los buses', correcto: true },
+      { letra: 'D', texto: 'Transferir datos entre la memoria RAM y el almacenamiento secundario', correcto: false },
+    ],
+    feedback_ok:  'Correcto. La Unidad de Control no calcula ni almacena datos. Su función es interpretar el código de operación de cada instrucción y generar las señales eléctricas que le indican a la ALU qué operación hacer, qué registros usar y cuándo escribir el resultado.',
+    feedback_err: 'Incorrecto. La Unidad de Control no realiza cálculos (eso lo hace la ALU) ni almacena datos (eso lo hacen los registros). Su papel es coordinar y dirigir a los demás componentes mediante señales de control.',
+  },
+  {
+    id: 9,
+    dominio: 'Unidad 2 — Estructura interna',
+    texto: 'Un procesador ejecuta la instrucción <code>ADD AX, BX</code>. ¿Qué componente interno realiza físicamente la suma de los dos valores?',
+    opciones: [
+      { letra: 'A', texto: 'El Memory Buffer Register (MBR)', correcto: false },
+      { letra: 'B', texto: 'La Unidad Aritmético-Lógica (ALU)', correcto: true },
+      { letra: 'C', texto: 'El Program Counter (PC)', correcto: false },
+      { letra: 'D', texto: 'La Unidad de Control (UC)', correcto: false },
+    ],
+    feedback_ok:  'Correcto. La ALU es el componente que realiza todas las operaciones aritméticas (suma, resta, multiplicación) y lógicas (AND, OR, XOR). Recibe los operandos de los registros, calcula el resultado y lo envía de vuelta.',
+    feedback_err: 'Incorrecto. La suma la realiza la ALU (Unidad Aritmético-Lógica). El PC apunta a instrucciones, el MBR hace de buffer de datos desde memoria, y la UC coordina el proceso pero no calcula.',
+  },
+  /* ── Unidad 2: Registros ── */
+  {
+    id: 10,
+    dominio: 'Unidad 2 — Registros internos',
+    texto: 'Después de la fase <strong>Fetch</strong>, el Instruction Register (IR) contiene el valor <code>SUB AX, 3</code>. ¿Qué información almacena exactamente el IR en este momento?',
+    opciones: [
+      { letra: 'A', texto: 'La dirección de memoria donde está almacenada esa instrucción', correcto: false },
+      { letra: 'B', texto: 'El resultado de la resta que está a punto de calcularse', correcto: false },
+      { letra: 'C', texto: 'La instrucción completa que se está ejecutando en el ciclo actual', correcto: true },
+      { letra: 'D', texto: 'El valor actual del registro AX antes de la operación', correcto: false },
+    ],
+    feedback_ok:  'Correcto. El IR guarda la instrucción completa que se trajo de memoria durante el Fetch. La Unidad de Control la decodifica desde el IR para identificar el opcode (SUB) y los operandos (AX, 3).',
+    feedback_err: 'Incorrecto. El IR guarda la instrucción en ejecución. La dirección la guarda el MAR, el resultado lo producirá la ALU después, y el valor de AX está en el propio registro AX.',
+  },
+  {
+    id: 11,
+    dominio: 'Unidad 2 — Registros internos',
+    texto: '¿Cuál es la diferencia funcional entre el <strong>MAR</strong> y el <strong>MBR</strong> durante un acceso a memoria?',
+    opciones: [
+      { letra: 'A', texto: 'El MAR guarda la dirección de memoria; el MBR guarda el dato leído o a escribir', correcto: true },
+      { letra: 'B', texto: 'El MAR guarda el dato y el MBR guarda la dirección; son complementarios', correcto: false },
+      { letra: 'C', texto: 'Ambos guardan la dirección de memoria pero en formatos diferentes', correcto: false },
+      { letra: 'D', texto: 'El MAR es para lectura y el MBR es exclusivamente para escritura', correcto: false },
+    ],
+    feedback_ok:  'Correcto. MAR (Memory Address Register) guarda la dirección de la celda de memoria a la que se accederá. MBR (Memory Buffer Register) guarda el dato que se leyó de esa dirección o que está listo para escribirse en ella.',
+    feedback_err: 'Incorrecto. La regla es simple: MAR → dirección (la A es de Address). MBR → dato (la B es de Buffer). Nunca es al revés.',
+  },
+  {
+    id: 12,
+    dominio: 'Unidad 2 — Registros internos',
+    texto: 'Un procesador Intel Core i9 tiene acceso a sus registros internos en <strong>1 ciclo de reloj</strong>. ¿Por qué los registros son significativamente más rápidos que la memoria RAM?',
+    opciones: [
+      { letra: 'A', texto: 'Los registros usan tecnología DDR5, que es más moderna que la RAM convencional', correcto: false },
+      { letra: 'B', texto: 'Los registros están ubicados dentro del propio chip del procesador, sin necesidad de cruzar ningún bus externo', correcto: true },
+      { letra: 'C', texto: 'Los registros no necesitan electricidad para mantener su estado, a diferencia de la RAM', correcto: false },
+      { letra: 'D', texto: 'Los registros almacenan más datos que la RAM, por lo que reducen el número de accesos necesarios', correcto: false },
+    ],
+    feedback_ok:  'Correcto. Los registros están grabados en el mismo silicio que la ALU y la UC, literalmente a nanómetros de distancia. No necesitan cruzar el bus de sistema para comunicarse. La RAM, en cambio, está en un chip separado conectado a través del bus de memoria.',
+    feedback_err: 'Incorrecto. La velocidad de los registros se debe a su ubicación física: están dentro del chip del procesador, sin latencia de bus. No tienen ninguna relación con DDR5 ni con la capacidad de almacenamiento.',
+  },
+  /* ── Unidad 2: Ciclo de instrucción ── */
+  {
+    id: 13,
+    dominio: 'Unidad 2 — Ciclo de instrucción',
+    texto: 'Durante la fase <strong>Fetch</strong> de la instrucción <code>MOV AX, 10</code>, ¿qué ocurre exactamente con el Program Counter (PC)?',
+    opciones: [
+      { letra: 'A', texto: 'El PC se reinicia a cero para preparar el siguiente ciclo completo', correcto: false },
+      { letra: 'B', texto: 'El PC permanece sin cambios hasta que la instrucción complete su ejecución', correcto: false },
+      { letra: 'C', texto: 'El PC se incrementa para apuntar a la dirección de la siguiente instrucción en memoria', correcto: true },
+      { letra: 'D', texto: 'El PC transfiere su valor al IR antes de avanzar', correcto: false },
+    ],
+    feedback_ok:  'Correcto. En cuanto la instrucción es leída de memoria y cargada en el IR, el PC se incrementa automáticamente para apuntar a la siguiente instrucción. Esto ocurre durante el Fetch, antes de que la instrucción actual termine de ejecutarse.',
+    feedback_err: 'Incorrecto. El PC se incrementa durante el Fetch, inmediatamente después de leer la instrucción actual. No espera a que la instrucción se ejecute ni se transfiere al IR; son registros con funciones distintas.',
+  },
+  {
+    id: 14,
+    dominio: 'Unidad 2 — Ciclo de instrucción',
+    texto: 'El ciclo de instrucción tiene cuatro fases principales. ¿Cuál es el <strong>orden correcto</strong>?',
+    opciones: [
+      { letra: 'A', texto: 'Decode → Fetch → Execute → Write-back', correcto: false },
+      { letra: 'B', texto: 'Fetch → Execute → Decode → Write-back', correcto: false },
+      { letra: 'C', texto: 'Fetch → Decode → Execute → Write-back', correcto: true },
+      { letra: 'D', texto: 'Execute → Fetch → Write-back → Decode', correcto: false },
+    ],
+    feedback_ok:  'Correcto. El orden es siempre Fetch (traer la instrucción) → Decode (entenderla) → Execute (ejecutarla) → Write-back (guardar el resultado). Este ciclo se repite para cada instrucción sin excepción.',
+    feedback_err: 'Incorrecto. El orden correcto es Fetch → Decode → Execute → Write-back. No puede ejecutarse una instrucción (Execute) sin antes haberla traído (Fetch) y decodificado (Decode).',
+  },
+  {
+    id: 15,
+    dominio: 'Unidad 2 — Ciclo de instrucción',
+    texto: 'Se ejecuta la instrucción <code>ADD AX, BX</code> con AX = 8 y BX = 4. Durante la fase <strong>Write-back</strong>, ¿qué ocurre exactamente?',
+    opciones: [
+      { letra: 'A', texto: 'La ALU recibe los valores 8 y 4 y calcula la suma', correcto: false },
+      { letra: 'B', texto: 'La Unidad de Control decodifica el opcode ADD del IR', correcto: false },
+      { letra: 'C', texto: 'El resultado 12 se escribe en el registro AX; BX conserva su valor 4', correcto: true },
+      { letra: 'D', texto: 'El Program Counter avanza a la siguiente instrucción', correcto: false },
+    ],
+    feedback_ok:  'Correcto. En Write-back, el resultado calculado por la ALU (12) se escribe en el registro destino especificado por la instrucción (AX). BX no cambia porque era solo el operando fuente. El PC ya avanzó durante el Fetch.',
+    feedback_err: 'Incorrecto. El cálculo ocurre en Execute, la decodificación en Decode y el PC avanza en Fetch. Write-back es únicamente la fase donde el resultado se escribe en el registro destino (AX ← 12).',
+  },
+  /* ── Unidad 2: FLAGS ── */
+  {
+    id: 16,
+    dominio: 'Unidad 2 — Flags y operaciones',
+    texto: 'Se ejecuta la instrucción <code>SUB AX, AX</code> (AX menos sí mismo). ¿Cuál de los siguientes flags se activa al completarse la operación?',
+    opciones: [
+      { letra: 'A', texto: 'Carry Flag (CF), porque hay un acarreo al restar el mismo valor', correcto: false },
+      { letra: 'B', texto: 'Zero Flag (ZF), porque el resultado de cualquier número menos sí mismo es cero', correcto: true },
+      { letra: 'C', texto: 'Overflow Flag (OF), porque la resta genera desbordamiento', correcto: false },
+      { letra: 'D', texto: 'Sign Flag (SF), porque el resultado de una resta siempre es negativo', correcto: false },
+    ],
+    feedback_ok:  'Correcto. n − n = 0 para cualquier valor de n. Cuando el resultado es exactamente cero, la ALU activa el Zero Flag (ZF = 1). Esta instrucción es una técnica clásica en ensamblador para poner un registro a cero de forma eficiente.',
+    feedback_err: 'Incorrecto. AX − AX = 0 siempre, por lo que el Zero Flag (ZF) es el que se activa. No hay acarreo, no hay desbordamiento y el resultado no es negativo.',
+  },
+  {
+    id: 17,
+    dominio: 'Unidad 2 — Flags y operaciones',
+    texto: 'Se ejecuta la instrucción <code>MOV BX, 255</code>. ¿Qué sucede con el registro FLAGS después de esta instrucción?',
+    opciones: [
+      { letra: 'A', texto: 'Se activa el Zero Flag porque 255 es el valor de desbordamiento de 8 bits', correcto: false },
+      { letra: 'B', texto: 'Se activa el Carry Flag porque el valor 255 está cerca del límite del registro', correcto: false },
+      { letra: 'C', texto: 'MOV no modifica ninguna bandera; los FLAGS permanecen sin cambio', correcto: true },
+      { letra: 'D', texto: 'Se activan todos los flags simultáneamente al cargar un valor en un registro', correcto: false },
+    ],
+    feedback_ok:  'Correcto. MOV es una instrucción de transferencia, no de cálculo. La ALU no interviene, por lo tanto el registro FLAGS no se modifica. Los flags solo cambian con instrucciones que realizan operaciones (ADD, SUB, AND, CMP, etc.).',
+    feedback_err: 'Incorrecto. MOV nunca modifica los flags. Solo las instrucciones aritméticas (ADD, SUB…) y lógicas (AND, OR…) actualizan el registro FLAGS. Transferir un dato de un lugar a otro no genera ningún resultado que la ALU deba evaluar.',
+  },
+  {
+    id: 18,
+    dominio: 'Unidad 2 — Flags y operaciones',
+    texto: 'La instrucción <code>CMP AX, BX</code> se ejecuta con AX = 10 y BX = 10. ¿Cuál es el comportamiento correcto de esta instrucción?',
+    opciones: [
+      { letra: 'A', texto: 'Calcula AX − BX, guarda el resultado en AX y activa ZF porque el resultado es cero', correcto: false },
+      { letra: 'B', texto: 'Calcula AX − BX internamente, activa ZF porque el resultado es cero, pero AX conserva el valor 10', correcto: true },
+      { letra: 'C', texto: 'Compara los valores sin realizar ninguna operación matemática y no actualiza los flags', correcto: false },
+      { letra: 'D', texto: 'Intercambia los valores de AX y BX si son iguales', correcto: false },
+    ],
+    feedback_ok:  'Correcto. CMP realiza internamente AX − BX (10 − 10 = 0) y actualiza los FLAGS, pero la diferencia crucial con SUB es que el resultado NO se escribe en ningún registro. AX queda con su valor original (10). Es por eso que CMP se usa para comparar sin "contaminar" los registros.',
+    feedback_err: 'Incorrecto. CMP realiza la resta internamente para actualizar los FLAGS, pero no escribe el resultado en AX. AX conserva su valor. Es la distinción fundamental entre CMP y SUB.',
+  },
+  /* ── Hardware físico ── */
+  {
+    id: 19,
+    dominio: 'Hardware — Componentes físicos',
+    texto: 'Un técnico olvida conectar la <strong>PSU</strong> al procesador. ¿Cuál es la consecuencia directa?',
+    opciones: [
+      { letra: 'A', texto: 'El procesador funciona pero a la mitad de su frecuencia de reloj', correcto: false },
+      { letra: 'B', texto: 'El procesador no puede ejecutar instrucciones porque no recibe el voltaje necesario para conmutar sus transistores', correcto: true },
+      { letra: 'C', texto: 'Solo la GPU deja de funcionar; el procesador continúa operando con la energía de la tarjeta madre', correcto: false },
+      { letra: 'D', texto: 'El sistema arranca en modo seguro con funciones limitadas', correcto: false },
+    ],
+    feedback_ok:  'Correcto. La PSU (Power Supply Unit) suministra el voltaje específico que necesita el procesador (conector de 8 pines con 12V). Sin ese voltaje, los transistores dentro del chip no pueden cambiar de estado (0/1) y la CPU simplemente no opera.',
+    feedback_err: 'Incorrecto. Sin el voltaje que provee la PSU, los transistores del procesador no pueden conmutar entre estados. No existe modo degradado: sin energía, la CPU no puede ejecutar ninguna instrucción.',
+  },
+  {
+    id: 20,
+    dominio: 'Hardware — Componentes físicos',
+    texto: 'Un alumno afirma: "Con una CPU muy rápida (4 GHz) y una RAM lenta (DDR3 a 1333 MHz), el sistema rendirá igual que si pusiera RAM DDR5". ¿Es correcta esta afirmación?',
+    opciones: [
+      { letra: 'A', texto: 'Sí, porque la velocidad del sistema la determina exclusivamente el procesador', correcto: false },
+      { letra: 'B', texto: 'Sí, porque la caché L1 y L2 compensan completamente la lentitud de la RAM', correcto: false },
+      { letra: 'C', texto: 'No, porque la RAM lenta crea un cuello de botella: el CPU esperará inactivo hasta que el bus de memoria entregue los datos', correcto: true },
+      { letra: 'D', texto: 'No, pero únicamente en aplicaciones de gaming; en tareas de oficina no hay diferencia', correcto: false },
+    ],
+    feedback_ok:  'Correcto. El procesador ejecuta instrucciones miles de millones de veces por segundo, pero si la RAM no puede entregar los datos al mismo ritmo, el CPU simplemente espera. Ese tiempo de espera se llama cuello de botella de memoria y reduce el rendimiento real del sistema independientemente de la velocidad del procesador.',
+    feedback_err: 'Incorrecto. La RAM lenta crea un cuello de botella porque el bus de memoria no puede satisfacer la demanda del procesador. La caché ayuda pero no elimina el problema para programas grandes. La afirmación del alumno es incorrecta.',
+  },
+];
+
+/* ─── Estado global ────────────────────────── */
+var STORAGE_KEY  = 'iedep_arqcomp_eval_2026';
+var preguntas    = [];   // orden aleatorio
+var respuestas   = {};   // { idPregunta: letraElegida }
+var infracciones = 0;
+var infDetailLog = [];
+var studentData  = {};
+var startTime;
+var examSubmitted = false;
+
+/* ─── Verificar si ya realizó ────────────────── */
+function verificarBloqueo() {
+  try {
+    var ya = localStorage.getItem(STORAGE_KEY);
+    if (ya) {
+      document.getElementById('screen-welcome').style.display = 'none';
+      var sb = document.getElementById('screen-blocked');
+      sb.style.display = 'flex';
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+/* ─── Fisher-Yates shuffle ────────────────── */
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+/* ─── Iniciar evaluación ──────────────────── */
+function iniciarEvaluacion() {
+  var nombre    = document.getElementById('st-nombre').value.trim();
+  var matricula = document.getElementById('st-matricula').value.trim();
+  var grupo     = document.getElementById('st-grupo').value.trim();
+
+  if (!nombre || !matricula || !grupo) {
+    mostrarToast('Completa nombre, matrícula y grupo para continuar.');
+    return;
+  }
+
+  studentData = { nombre: nombre, matricula: matricula, grupo: grupo };
+  startTime   = new Date();
+
+  // Aleatorizar preguntas
+  preguntas = shuffle(BANCO).map(function(q) {
+    return Object.assign({}, q, { opciones: shuffle(q.opciones) });
+  });
+
+  // Construir el examen
+  var body = document.getElementById('exam-body');
+  body.innerHTML = '';
+
+  preguntas.forEach(function(q, idx) {
+    var qDiv = document.createElement('div');
+    qDiv.className = 'question-block';
+    qDiv.id = 'q-block-' + q.id;
+
+    var letras = ['A','B','C','D'];
+
+    var optsHtml = q.opciones.map(function(op, oi) {
+      return '<div class="option-item" id="opt-' + q.id + '-' + op.letra + '" onclick="seleccionar(' + q.id + ', \'' + op.letra + '\', ' + op.correcto + ')">' +
+        '<div class="opt-letter">' + letras[oi] + '</div>' +
+        '<div class="opt-text">' + op.texto + '</div>' +
+        '</div>';
+    }).join('');
+
+    qDiv.innerHTML =
+      '<div class="q-header">' +
+        '<span class="q-num-badge">Pregunta ' + (idx+1) + ' de 20</span>' +
+        '<span class="q-dominio">' + q.dominio + '</span>' +
+      '</div>' +
+      '<p class="q-text">' + q.texto + '</p>' +
+      '<div class="options-list" id="opts-' + q.id + '">' + optsHtml + '</div>' +
+      '<div class="q-feedback" id="fb-' + q.id + '"></div>';
+
+    body.appendChild(qDiv);
+  });
+
+  // Mostrar pantalla de examen
+  document.getElementById('screen-welcome').style.display = 'none';
+  document.getElementById('screen-exam').style.display    = 'block';
+  window.scrollTo(0, 0);
+
+  // Listeners de infracciones
+  activarVigilancia();
+}
+
+/* ─── Seleccionar respuesta ──────────────────── */
+function seleccionar(qId, letraOp, esCorrecta) {
+  if (respuestas[qId] !== undefined) return; // ya respondida
+
+  respuestas[qId] = { letra: letraOp, correcto: esCorrecta };
+
+  // Bloquear todas las opciones de esta pregunta
+  var pregunta = preguntas.find(function(p) { return p.id === qId; });
+  var optsDiv  = document.getElementById('opts-' + qId);
+  var items    = optsDiv.querySelectorAll('.option-item');
+  var letras   = ['A','B','C','D'];
+
+  items.forEach(function(item, idx) {
+    item.classList.add('locked');
+    item.onclick = null;
+    var opActual = pregunta.opciones[idx];
+
+    if (opActual.letra === letraOp && esCorrecta) {
+      item.classList.add('selected-correct');
+    } else if (opActual.letra === letraOp && !esCorrecta) {
+      item.classList.add('selected-wrong');
+    } else if (opActual.correcto) {
+      item.classList.add('reveal-correct');
+    }
+  });
+
+  // Feedback
+  var fb = document.getElementById('fb-' + qId);
+  fb.classList.add('show');
+  if (esCorrecta) {
+    fb.classList.add('correct');
+    fb.innerHTML = '<span class="fb-label">Correcto</span>' + pregunta.feedback_ok;
+  } else {
+    fb.classList.add('wrong');
+    fb.innerHTML = '<span class="fb-label">Incorrecto</span>' + pregunta.feedback_err;
+  }
+
+  actualizarProgreso();
+}
+
+/* ─── Progreso ───────────────────────────── */
+function actualizarProgreso() {
+  var respondidas = Object.keys(respuestas).length;
+  var pct = Math.round(respondidas / 20 * 100);
+
+  document.getElementById('exam-progress-fill').style.width = pct + '%';
+  document.getElementById('exam-prog-label').textContent    = respondidas + ' / 20';
+  document.getElementById('answered-count').textContent     = respondidas;
+
+  document.getElementById('btn-submit').disabled = (respondidas < 20);
+}
+
+/* ─── Finalizar ──────────────────────────── */
+function finalizarEvaluacion() {
+  if (examSubmitted) return;
+  examSubmitted = true;
+
+  var correctas   = 0;
+  var incorrectas = 0;
+
+  Object.values(respuestas).forEach(function(r) {
+    if (r.correcto) correctas++;
+    else incorrectas++;
+  });
+
+  var score = correctas * 5;
+
+  // Guardar en localStorage
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      nombre:    studentData.nombre,
+      matricula: studentData.matricula,
+      fecha:     new Date().toISOString(),
+      score:     score
+    }));
+  } catch(e) {}
+
+  // Rellenar resultados
+  document.getElementById('res-nombre').textContent    = studentData.nombre;
+  document.getElementById('res-score').textContent     = score;
+  document.getElementById('res-correctas').textContent = correctas;
+  document.getElementById('res-incorrectas').textContent = incorrectas;
+  document.getElementById('res-infracciones').textContent = infracciones;
+
+  // Metadata
+  var ahora = new Date();
+  var fechaStr = ahora.toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) +
+                 ' — ' + ahora.toLocaleTimeString('es-MX');
+
+  document.getElementById('meta-nombre').textContent       = studentData.nombre;
+  document.getElementById('meta-matricula').textContent    = studentData.matricula;
+  document.getElementById('meta-grupo').textContent        = studentData.grupo;
+  document.getElementById('meta-fecha').textContent        = fechaStr;
+  document.getElementById('meta-calificacion').textContent = score + ' / 100 pts';
+
+  // Retroalimentación
+  var panel = document.getElementById('feedback-panel');
+  var texto = document.getElementById('fp-text');
+  var msg, cls;
+
+  if (score >= 90) {
+    cls = 'excelente';
+    msg = 'Desempeño sobresaliente. Demuestras un dominio sólido de los conceptos de arquitectura: generaciones, modelos Von Neumann y Harvard, el bus del sistema, la estructura interna de la CPU, los registros y el ciclo de instrucción. Estás en condiciones de abordar los temas de las Unidades 3 y 4 con bases muy bien establecidas.';
+  } else if (score >= 70) {
+    cls = 'bueno';
+    msg = 'Desempeño satisfactorio. La mayoría de los conceptos fundamentales están bien comprendidos. Revisa con atención las preguntas que marcaron retroalimentación de error: probablemente hay áreas puntuales (registros especiales, flags o el comportamiento de CMP) que merecen un repaso adicional antes de continuar con las siguientes unidades.';
+  } else if (score >= 50) {
+    cls = 'regular';
+    msg = 'Desempeño en desarrollo. Hay conceptos básicos que aún requieren atención. Se recomienda releer la guía de estudio de las Unidades 1 y 2, especialmente las secciones de registros internos y ciclo de instrucción. Considera agendar una sesión de aclaración con el asesor antes de la evaluación del siguiente bloque temático.';
+  } else {
+    cls = 'insuficiente';
+    msg = 'Es necesario reforzar los contenidos de ambas unidades antes de continuar. Retoma la guía de estudio desde el principio, comenzando por las generaciones y el modelo Von Neumann, y avanza hasta los flags y el ciclo de instrucción. Habla con el asesor para acordar una estrategia de recuperación.';
+  }
+
+  panel.className = 'feedback-panel ' + cls;
+  texto.textContent = msg;
+
+  // Infracciones
+  var ipCount  = document.getElementById('ip-count');
+  var ipDetail = document.getElementById('ip-detail');
+  ipCount.textContent = infracciones + ' evento' + (infracciones !== 1 ? 's' : '') + ' registrado' + (infracciones !== 1 ? 's' : '');
+
+  if (infracciones === 0) {
+    ipDetail.textContent = 'No se detectaron eventos de comportamiento atípico durante la evaluación.';
+  } else {
+    ipDetail.textContent = 'Eventos registrados: ' + infDetailLog.slice(0, 5).join('; ') + (infDetailLog.length > 5 ? ' (y ' + (infDetailLog.length-5) + ' más).' : '.');
+  }
+
+  // Mostrar pantalla
+  document.getElementById('screen-exam').style.display    = 'none';
+  document.getElementById('screen-results').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+/* ─── Vigilancia de infracciones ────────────── */
+function registrarInfraccion(tipo) {
+  infracciones++;
+  infDetailLog.push(tipo);
+
+  var badge = document.getElementById('infraction-badge');
+  badge.style.display = 'inline-block';
+  badge.textContent   = 'Eventos: ' + infracciones;
+
+  mostrarToast('Evento registrado: ' + tipo);
+}
+
+function mostrarToast(msg) {
+  var t = document.getElementById('infraction-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(function() { t.classList.remove('show'); }, 2800);
+}
+
+function activarVigilancia() {
+  // Clic derecho
+  document.addEventListener('contextmenu', function(e) {
+    if (document.getElementById('screen-exam').style.display !== 'none') {
+      e.preventDefault();
+      registrarInfraccion('Intento de menú contextual');
+    }
+  });
+
+  // Atajos de teclado
+  document.addEventListener('keydown', function(e) {
+    if (document.getElementById('screen-exam').style.display === 'none') return;
+    var combo = (e.ctrlKey || e.metaKey);
+    var k = e.key.toLowerCase();
+    if (combo && (k === 'c' || k === 'a' || k === 's' || k === 'p' || k === 'u')) {
+      if (k === 'p') { window.print(); return; }
+      e.preventDefault();
+      registrarInfraccion('Atajo de teclado (' + (e.ctrlKey ? 'Ctrl' : 'Cmd') + '+' + e.key.toUpperCase() + ')');
+    }
+    // F12
+    if (e.key === 'F12') {
+      e.preventDefault();
+      registrarInfraccion('Intento de abrir DevTools (F12)');
+    }
+    // PrintScreen
+    if (e.key === 'PrintScreen') {
+      registrarInfraccion('Captura de pantalla (PrintScreen)');
+    }
+  });
+
+  // Cambio de pestaña / foco
+  document.addEventListener('visibilitychange', function() {
+    if (document.getElementById('screen-exam').style.display === 'none') return;
+    if (document.hidden) {
+      registrarInfraccion('Cambio de pestaña o pérdida de foco (' + new Date().toLocaleTimeString('es-MX') + ')');
+    }
+  });
+
+  // Arrastre
+  document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+
+  // Selección de texto
+  document.addEventListener('selectstart', function(e) {
+    var t = e.target;
+    if (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  });
+}
+
+/* ─── Validación del botón START ─────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  if (verificarBloqueo()) return;
+
+  var fields = ['st-nombre','st-matricula','st-grupo'];
+  fields.forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
+      var ok = fields.every(function(f) {
+        return document.getElementById(f).value.trim().length > 0;
+      });
+      document.getElementById('btn-start').disabled = !ok;
+    });
+  });
+
+  document.getElementById('btn-start').disabled = true;
+});
+</script>
+</body>
+</html>
